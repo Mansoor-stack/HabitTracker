@@ -13,30 +13,40 @@ A modern, production-ready habit tracking web application with real-time sync, b
 ### Core Functionality
 - ✅ **Habit CRUD** - Create, edit, and delete habits with custom icons, colors, and categories
 - 📊 **Smart Dashboard** - Real-time stats including streaks, completion rates, and daily progress
-- 📈 **Rich Analytics** - Interactive charts (weekly trends, category distribution, monthly heatmaps)
+- 📈 **Rich Analytics** - Interactive charts with filters (period, category, habit)
 - 📅 **Calendar View** - Monthly visualization of habit completions with navigation
 - 🔥 **Streak Tracking** - Automatic streak calculation with best streak records
+- 📧 **Email Reports** - Weekly/monthly progress reports delivered to your inbox
 
 ### User Experience
-- 🌙 **Dark Theme** - Modern, eye-friendly design with gradient accents
-- 📱 **Fully Responsive** - Optimized for desktop, tablet, and mobile devices
+- 🎨 **6 Beautiful Themes** - Default, Ocean, Forest, Sunset, Midnight, Rose themes
+- 🌙 **Dark Mode** - Modern, eye-friendly design with gradient accents
+- 📱 **PWA Support** - Install as native app on iOS/Android with offline capability
 - 🍔 **Mobile Navigation** - Hamburger menu with smooth sidebar transitions
 - ⚡ **Optimistic Updates** - Instant UI feedback with background sync
-- 🔔 **Toast Notifications** - Non-intrusive feedback for all actions
-- 💬 **Confirm Dialogs** - Safe deletion with custom confirmation modals
+- 🔔 **Push Notifications** - Daily habit reminders with customizable time
+- 💬 **Toast Notifications** - Non-intrusive feedback for all actions
+- 👁️ **Password Visibility** - Toggle to show/hide password in auth forms
 
 ### Resilience & Reliability
-- 🔐 **Secure Authentication** - Email/password auth with session management
+- 🔐 **Secure Authentication** - Email/password auth with password reset flow
 - 💾 **Offline Support** - Local queue for changes made offline, auto-sync when back online
 - ⏱️ **Timeout Handling** - Graceful recovery from slow/failed network requests
 - 🔄 **Session Recovery** - Auto-refresh data after tab inactivity
 - 🌐 **Connection Status** - Real-time online/offline indicator
 
+### Analytics & Insights
+- 📊 **Progress Bar** - Visual completion percentage with animated gradient
+- 🗓️ **Period Filters** - View data by week, month, quarter, year, or all time
+- 🏷️ **Category Filters** - Filter analytics by habit category
+- 🎯 **Habit Filters** - Drill down to individual habit performance
+- 📈 **Dynamic Charts** - Titles and data update based on filter selection
+
 ### Accessibility
 - ⌨️ **Keyboard Navigation** - Full keyboard support with visible focus states
 - 🔗 **Skip Links** - Quick navigation to main content
 - 📢 **ARIA Labels** - Screen reader friendly components
-- 🎨 **High Contrast** - Clear visual hierarchy and readable text
+- 📱 **iOS Safe Areas** - Proper handling of notch/Dynamic Island
 
 ---
 
@@ -56,11 +66,12 @@ A modern, production-ready habit tracking web application with real-time sync, b
 ```
 HabitTracker/
 ├── index.html          # Main HTML with all views and modals
-├── styles.css          # Complete styling (~2000 lines)
-│                       # - CSS variables for theming
+├── styles.css          # Complete styling (~4000 lines)
+│                       # - CSS variables for theming (6 themes)
 │                       # - Responsive breakpoints
+│                       # - PWA safe area handling
+│                       # - Analytics filters & progress bar
 │                       # - Component styles (toast, dialog, loading)
-│                       # - Animations and transitions
 │
 ├── config.js           # Supabase configuration
 │                       # - Project URL and anon key
@@ -71,17 +82,14 @@ HabitTracker/
 │                       # - LoadingManager (prevents flicker)
 │                       # - Toast system
 │                       # - Debounce/throttle helpers
-│                       # - Error handler
 │                       # - Network status manager
-│                       # - LocalStorage manager (quota handling)
 │                       # - Date utilities
-│                       # - Validation utilities
 │
 ├── auth.js             # Authentication module
 │                       # - Sign up / Sign in / Sign out
-│                       # - Password reset
+│                       # - Password reset with dedicated page
+│                       # - Password visibility toggle
 │                       # - Session health checks
-│                       # - Visibility change handling
 │                       # - Inactivity detection & recovery
 │
 ├── database.js         # Data layer
@@ -90,23 +98,49 @@ HabitTracker/
 │                       # - Streak updates
 │                       # - Offline queue & sync
 │                       # - Timeout wrapper (30s per query)
-│                       # - Max loading cap (60s with recovery)
-│                       # - Session state persistence
 │
-├── app.js              # Main application logic (~1300 lines)
-│                       # - View management (dashboard/habits/analytics/calendar)
-│                       # - Habit rendering and interactions
-│                       # - Chart initialization and updates
+├── notifications.js    # Notifications & Email Reports
+│                       # - Push notification system
+│                       # - Daily reminder scheduling
+│                       # - Email report preferences
+│                       # - Report preview generation
+│                       # - Test email functionality
+│
+├── app.js              # Main application logic (~1500 lines)
+│                       # - View management
+│                       # - Analytics filters & progress bar
+│                       # - Theme management (6 themes)
+│                       # - Chart initialization with dynamic titles
 │                       # - Modal handling
-│                       # - Connection status UI
-│                       # - Loading overlay with progress
+│
+├── sw.js               # Service Worker for PWA
+│                       # - Offline caching
+│                       # - Background sync
+│
+├── manifest.json       # PWA manifest
+│                       # - App icons and splash screens
+│                       # - Display and orientation settings
+│
+├── reset-password.html # Dedicated password reset page
+│                       # - Handles Supabase recovery flow
 │
 ├── supabase-schema.sql # Database schema
 │                       # - Tables: habits, completions, profiles
 │                       # - Row Level Security policies
 │                       # - Triggers for profile creation
 │
-└── README.md           # This file
+├── supabase-email-reports.sql  # Email reports schema
+│                               # - last_report_sent tracking
+│                               # - Report stats functions
+│
+├── supabase/functions/         # Supabase Edge Functions
+│   └── send-email-report/      # Email report sender
+│       └── index.ts            # - HTML email generation
+│                               # - Resend integration
+│                               # - Scheduled batch sending
+│
+└── docs/
+    └── EMAIL_REPORTS_SETUP.md  # Email setup guide
 ```
 
 ### Data Flow
@@ -169,7 +203,10 @@ HabitTracker/
 |--------|------|-------------|
 | `id` | UUID | Primary key (same as auth.users.id) |
 | `name` | TEXT | Display name |
-| `email` | TEXT | Email address |
+| `email_reports` | BOOLEAN | Email reports enabled |
+| `email_frequency` | TEXT | weekly or monthly |
+| `reminder_time` | TIME | Daily reminder time |
+| `last_report_sent` | TIMESTAMP | Last email report sent |
 | `created_at` | TIMESTAMP | Registration timestamp |
 
 ### Row Level Security (RLS)
@@ -255,10 +292,20 @@ In Supabase **Authentication** → **URL Configuration**:
 - Quick access to edit habits
 
 ### Analytics
-- **Weekly Overview**: Bar chart of last 7 days
+- **Period Filters**: Week, Month, Quarter, Year, All Time
+- **Category/Habit Filters**: Drill down to specific data
+- **Progress Bar**: Visual completion % with animated gradient
+- **Weekly Overview**: Bar chart of daily completions
 - **Category Distribution**: Pie chart of habit categories
-- **Monthly Trend**: Line chart of monthly completions
-- **Day of Week**: Performance by weekday
+- **Day of Week**: Performance heatmap by weekday
+- **Streak Leaderboard**: Top habits by streak
+
+### Settings
+- **Theme Selection**: 6 beautiful themes to choose from
+- **Push Notifications**: Enable daily reminders
+- **Email Reports**: Weekly/monthly progress emails
+- **Report Preview**: See what your email report looks like
+- **Test Report**: Send a test email to verify setup
 
 ### Calendar
 - Navigate months with arrow buttons
@@ -283,15 +330,23 @@ case 'new-category': return '🆕 New Category';
 
 ### Changing Theme Colors
 
-Edit CSS variables in `styles.css`:
+The app includes 6 built-in themes. To add a custom theme, edit `styles.css`:
+
 ```css
-:root {
-    --primary: #6366f1;      /* Main accent color */
-    --primary-dark: #4f46e5; /* Darker variant */
-    --success: #10b981;      /* Completion color */
-    --bg-primary: #0f0f1a;   /* Background */
-    /* ... */
+[data-theme="custom"] {
+    --primary: #your-color;
+    --primary-dark: #darker-variant;
+    --bg-primary: #background;
+    --bg-secondary: #card-bg;
+    /* ... see existing themes for all variables */
 }
+```
+
+Then add to the theme selector in `index.html`:
+```html
+<button class="theme-option" data-theme="custom" title="Custom">
+    <div class="theme-preview" style="background: linear-gradient(135deg, #color1, #color2)"></div>
+</button>
 ```
 
 ### Adding New Icons
@@ -312,6 +367,9 @@ In `index.html`, add to the icon picker grid:
 | Data not saving | Check browser console; verify RLS policies |
 | Stuck on loading | Clear browser cache; check network connection |
 | CORS errors | Add site URL to Supabase API settings |
+| Password reset 404 | Ensure redirect URL includes `/HabitTracker/` path |
+| iOS status bar overlap | App uses `env(safe-area-inset-*)` - should auto-fix |
+| Email reports not sending | See `docs/EMAIL_REPORTS_SETUP.md` for configuration |
 
 ---
 
@@ -331,11 +389,17 @@ In `index.html`, add to the icon picker grid:
 ## 🛣️ Roadmap
 
 - [x] Push notifications for habit reminders ✅
-- [x] Custom themes and color schemes ✅
+- [x] Custom themes and color schemes (6 themes) ✅
 - [x] Weekly/monthly reports via email ✅
+- [x] Analytics filters (period, category, habit) ✅
+- [x] PWA with offline support ✅
+- [x] iOS safe area handling ✅
+- [x] Password visibility toggle ✅
+- [x] Visual progress bar in analytics ✅
 - [ ] Social features (share progress, challenges)
 - [ ] Data export (CSV, JSON)
 - [ ] Habit templates library
+- [ ] Habit notes and journaling
 
 ---
 
