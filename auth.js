@@ -187,7 +187,109 @@ function toggleAuthForm(form) {
     }
 }
 
+// ============================================
+// Visibility & Session Recovery
+// ============================================
+
+let lastActiveTime = Date.now();
+let sessionCheckInterval = null;
+
+// Track when user was last active
+function updateLastActiveTime() {
+    lastActiveTime = Date.now();
+}
+
+// Check session health periodically
+function startSessionHealthCheck() {
+    // Clear existing interval
+    if (sessionCheckInterval) {
+        clearInterval(sessionCheckInterval);
+    }
+    
+    // Check session every 5 minutes
+    sessionCheckInterval = setInterval(async () => {
+        if (!currentUser) return;
+        
+        try {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+            if (error || !session) {
+                console.warn('Session expired or invalid');
+                showToast('Session expired. Please sign in again.', 'warning');
+                showAuthScreen();
+            }
+        } catch (e) {
+            console.warn('Session check failed:', e);
+        }
+    }, 5 * 60 * 1000); // 5 minutes
+}
+
+// Handle visibility change (tab becomes active/inactive)
+document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible') {
+        const inactiveTime = Date.now() - lastActiveTime;
+        const inactiveMinutes = inactiveTime / 1000 / 60;
+        
+        console.log(`Tab became visible after ${inactiveMinutes.toFixed(1)} minutes`);
+        
+        // If inactive for more than 5 minutes, verify session and refresh data
+        if (inactiveMinutes > 5 && currentUser) {
+            try {
+                // Quick session check with timeout
+                const sessionCheck = Promise.race([
+                    supabaseClient.auth.getSession(),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Session check timeout')), 5000)
+                    )
+                ]);
+                
+                const { data: { session }, error } = await sessionCheck;
+                
+                if (error || !session) {
+                    showToast('Session expired. Please sign in again.', 'warning');
+                    showAuthScreen();
+                    return;
+                }
+                
+                // Session is valid, refresh data silently
+                currentUser = session.user;
+                
+                // Only reload if inactive for more than 10 minutes
+                if (inactiveMinutes > 10) {
+                    showToast('Refreshing your data...', 'info', 2000);
+                    await loadUserData();
+                    refreshAll();
+                }
+                
+            } catch (e) {
+                console.warn('Visibility change session check failed:', e);
+                // Don't show error for minor issues, just log it
+                if (e.message === 'Session check timeout') {
+                    showToast('Connection slow. Some features may be delayed.', 'warning', 3000);
+                }
+            }
+        }
+        
+        updateLastActiveTime();
+    } else {
+        // Tab became hidden - save the time
+        updateLastActiveTime();
+    }
+});
+
+// Handle page focus
+window.addEventListener('focus', () => {
+    updateLastActiveTime();
+});
+
+// Handle user interactions
+['click', 'keydown', 'scroll', 'touchstart'].forEach(event => {
+    document.addEventListener(event, updateLastActiveTime, { passive: true });
+});
+
 // Initialize auth check when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
+    startSessionHealthCheck();
+    updateLastActiveTime();
 });
+

@@ -2109,6 +2109,16 @@ body.menu-open {
     color: var(--text-primary);
 }
 
+/* Retry toast special styling */
+.retry-toast {
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.retry-toast .btn-primary {
+    margin-left: auto;
+}
+
 /* ===== CONFIRM DIALOG ===== */
 .confirm-overlay {
     position: fixed;

@@ -2,20 +2,119 @@
 // Database Operations Module
 // ============================================
 
+// Timeout wrapper for async operations
+function withTimeout(promise, timeoutMs = 15000, errorMessage = 'Operation timed out') {
+    return Promise.race([
+        promise,
+        new Promise((_, reject) => 
+            setTimeout(() => reject(new Error(errorMessage)), timeoutMs)
+        )
+    ]);
+}
+
+// Loading state tracker to prevent stuck loading
+let loadingTimeout = null;
+let isLoadingData = false;
+
+function startLoadingTimeout() {
+    // Clear any existing timeout
+    clearLoadingTimeout();
+    
+    // Set a maximum loading time of 30 seconds
+    loadingTimeout = setTimeout(() => {
+        console.warn('Loading timeout reached - forcing recovery');
+        forceRecovery();
+    }, 30000);
+}
+
+function clearLoadingTimeout() {
+    if (loadingTimeout) {
+        clearTimeout(loadingTimeout);
+        loadingTimeout = null;
+    }
+}
+
+function forceRecovery() {
+    isLoadingData = false;
+    hideLoading();
+    showToast('Loading took too long. Please refresh or try again.', 'warning', 5000);
+    
+    // Show a retry button
+    showRetryOption();
+}
+
+function showRetryOption() {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    // Remove existing retry toast if any
+    const existingRetry = container.querySelector('.retry-toast');
+    if (existingRetry) existingRetry.remove();
+    
+    const retryToast = document.createElement('div');
+    retryToast.className = 'toast toast-info retry-toast show';
+    retryToast.innerHTML = `
+        <span class="toast-icon">🔄</span>
+        <div class="toast-content">
+            <div class="toast-message">Connection issue detected</div>
+        </div>
+        <button class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="retryLoadData()">Retry</button>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    container.appendChild(retryToast);
+}
+
+async function retryLoadData() {
+    // Remove retry toast
+    const retryToast = document.querySelector('.retry-toast');
+    if (retryToast) retryToast.remove();
+    
+    // Check session first
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (!session) {
+            showToast('Session expired. Please sign in again.', 'error');
+            showAuthScreen();
+            return;
+        }
+        currentUser = session.user;
+    } catch (e) {
+        showToast('Connection error. Please check your internet.', 'error');
+        return;
+    }
+    
+    // Retry loading
+    await loadUserData();
+    initializeApp();
+}
+
 // Load all user data from database
 async function loadUserData() {
     if (!currentUser) return;
+    
+    // Prevent multiple simultaneous loads
+    if (isLoadingData) {
+        console.log('Already loading data, skipping...');
+        return;
+    }
+    
+    isLoadingData = true;
+    startLoadingTimeout();
     
     try {
         showLoading('Loading your habits...');
         updateLoadingProgress(10);
         
-        // Load habits
-        const { data: habitsData, error: habitsError } = await supabaseClient
-            .from('habits')
-            .select('*')
-            .eq('user_id', currentUser.id)
-            .order('created_at', { ascending: true });
+        // Load habits with timeout
+        const { data: habitsData, error: habitsError } = await withTimeout(
+            supabaseClient
+                .from('habits')
+                .select('*')
+                .eq('user_id', currentUser.id)
+                .order('created_at', { ascending: true }),
+            15000,
+            'Loading habits timed out'
+        );
 
         if (habitsError) throw habitsError;
         
@@ -37,11 +136,15 @@ async function loadUserData() {
 
         updateLoadingProgress(60);
 
-        // Load completions
-        const { data: completionsData, error: completionsError } = await supabaseClient
-            .from('completions')
-            .select('*')
-            .eq('user_id', currentUser.id);
+        // Load completions with timeout
+        const { data: completionsData, error: completionsError } = await withTimeout(
+            supabaseClient
+                .from('completions')
+                .select('*')
+                .eq('user_id', currentUser.id),
+            15000,
+            'Loading completions timed out'
+        );
 
         if (completionsError) throw completionsError;
         
@@ -56,14 +159,28 @@ async function loadUserData() {
         });
 
         updateLoadingProgress(100);
+        clearLoadingTimeout();
 
         // Refresh UI
         refreshAll();
         
     } catch (error) {
         console.error('Error loading data:', error);
-        showToast('Error loading your data. Please refresh the page.', 'error', 5000);
+        clearLoadingTimeout();
+        
+        // Check if it's a timeout or network error
+        if (error.message.includes('timed out')) {
+            showToast('Loading timed out. Check your connection.', 'error', 5000);
+            showRetryOption();
+        } else if (error.message.includes('JWT') || error.message.includes('token')) {
+            showToast('Session expired. Please sign in again.', 'error');
+            showAuthScreen();
+        } else {
+            showToast('Error loading data. Please try again.', 'error', 5000);
+            showRetryOption();
+        }
     } finally {
+        isLoadingData = false;
         hideLoading();
     }
 }
