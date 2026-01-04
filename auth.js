@@ -11,21 +11,34 @@ async function checkAuth() {
         
         if (session) {
             currentUser = session.user;
+            isInitialAuthCheck = false; // Mark that we handled the initial auth
             showApp();
             await loadUserData();
             initializeApp();
         } else {
+            isInitialAuthCheck = false;
             showAuthScreen();
         }
     } catch (error) {
         console.error('Auth check failed:', error);
+        isInitialAuthCheck = false;
         showAuthScreen();
     }
 }
 
+// Track if this is the initial page load (to avoid duplicate welcome toasts)
+let isInitialAuthCheck = true;
+
 // Listen for auth state changes
 supabaseClient.auth.onAuthStateChange(async (event, session) => {
     if (event === 'SIGNED_IN' && session) {
+        // Skip if this is just the initial session restore on page load
+        // (checkAuth already handles that case)
+        if (isInitialAuthCheck) {
+            isInitialAuthCheck = false;
+            return;
+        }
+        
         currentUser = session.user;
         showApp();
         await loadUserData();

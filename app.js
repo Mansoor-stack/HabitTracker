@@ -146,8 +146,21 @@ function hideLoading() {
 
 function updateLoadingProgress(percent) {
     const bar = document.getElementById('loading-progress-bar');
+    const overlay = document.getElementById('loading-overlay');
     if (bar) {
         bar.style.width = `${percent}%`;
+        // Also show percentage text
+        bar.setAttribute('aria-valuenow', percent);
+    }
+    // Update loading text with percentage if loading
+    if (overlay && percent > 0 && percent < 100) {
+        const loadingText = overlay.querySelector('.loading-text');
+        if (loadingText && !loadingText.dataset.originalText) {
+            loadingText.dataset.originalText = loadingText.textContent;
+        }
+        if (loadingText) {
+            loadingText.textContent = `${loadingText.dataset.originalText || 'Loading...'} (${percent}%)`;
+        }
     }
 }
 

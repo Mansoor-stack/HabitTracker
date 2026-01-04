@@ -20,11 +20,11 @@ function startLoadingTimeout() {
     // Clear any existing timeout
     clearLoadingTimeout();
     
-    // Set a maximum loading time of 30 seconds
+    // Set a maximum loading time of 60 seconds (increased to match query timeouts)
     loadingTimeout = setTimeout(() => {
         console.warn('Loading timeout reached - forcing recovery');
         forceRecovery();
-    }, 30000);
+    }, 60000);
 }
 
 function clearLoadingTimeout() {
@@ -105,14 +105,14 @@ async function loadUserData() {
         showLoading('Loading your habits...');
         updateLoadingProgress(10);
         
-        // Load habits with timeout
+        // Load habits with timeout (30s for slow connections)
         const { data: habitsData, error: habitsError } = await withTimeout(
             supabaseClient
                 .from('habits')
                 .select('*')
                 .eq('user_id', currentUser.id)
                 .order('created_at', { ascending: true }),
-            15000,
+            30000,
             'Loading habits timed out'
         );
 
@@ -136,13 +136,13 @@ async function loadUserData() {
 
         updateLoadingProgress(60);
 
-        // Load completions with timeout
+        // Load completions with timeout (30s for slow connections)
         const { data: completionsData, error: completionsError } = await withTimeout(
             supabaseClient
                 .from('completions')
                 .select('*')
                 .eq('user_id', currentUser.id),
-            15000,
+            30000,
             'Loading completions timed out'
         );
 
