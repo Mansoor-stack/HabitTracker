@@ -31,10 +31,6 @@ const THEMES = {
     // Dark themes
     midnight: { name: 'Midnight', mode: 'dark', primary: '#6366f1' },
     ocean: { name: 'Ocean', mode: 'dark', primary: '#06b6d4' },
-    forest: { name: 'Forest', mode: 'dark', primary: '#22c55e' },
-    sunset: { name: 'Sunset', mode: 'dark', primary: '#f97316' },
-    rose: { name: 'Rose', mode: 'dark', primary: '#ec4899' },
-    lavender: { name: 'Lavender', mode: 'dark', primary: '#a855f7' },
     // Light themes
     light: { name: 'Light', mode: 'light', primary: '#6366f1' },
     snow: { name: 'Snow', mode: 'light', primary: '#0ea5e9' },
