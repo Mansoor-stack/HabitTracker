@@ -14,6 +14,13 @@ let currentYear = new Date().getFullYear();
 let selectedIcon = '💪';
 let currentTheme = 'midnight';
 
+// Analytics filter state
+let analyticsFilters = {
+    period: 'month',      // week, month, quarter, year, all
+    category: 'all',      // all, health, productivity, mindfulness, learning, other
+    habitId: 'all'        // all or specific habit id
+};
+
 // Chart instances
 let weeklyChart = null;
 let categoryChart = null;
@@ -1035,10 +1042,170 @@ function renderHabitsView() {
 }
 
 function renderAnalytics() {
+    populateHabitFilter();
+    updateFilteredSummaryStats();
     renderMonthlyChart();
     renderDayOfWeekChart();
     renderStreaksList();
     renderHeatmap();
+}
+
+// ============================================
+// Analytics Filters
+// ============================================
+
+function updateAnalyticsFilters() {
+    analyticsFilters.period = document.getElementById('analytics-period')?.value || 'month';
+    analyticsFilters.habitId = document.getElementById('analytics-habit')?.value || 'all';
+    
+    // Re-render analytics with new filters
+    updateFilteredSummaryStats();
+    renderMonthlyChart();
+    renderDayOfWeekChart();
+    renderStreaksList();
+    renderHeatmap();
+}
+
+function updateAnalyticsCategoryFilter() {
+    analyticsFilters.category = document.getElementById('analytics-category')?.value || 'all';
+    analyticsFilters.habitId = 'all'; // Reset habit filter when category changes
+    
+    // Update habit dropdown based on category
+    populateHabitFilter();
+    
+    // Re-render analytics
+    updateAnalyticsFilters();
+}
+
+function populateHabitFilter() {
+    const habitSelect = document.getElementById('analytics-habit');
+    if (!habitSelect) return;
+    
+    // Get habits for selected category
+    const filteredHabits = analyticsFilters.category === 'all' 
+        ? habits 
+        : habits.filter(h => h.category === analyticsFilters.category);
+    
+    habitSelect.innerHTML = '<option value="all">All Habits</option>';
+    
+    filteredHabits.forEach(habit => {
+        const option = document.createElement('option');
+        option.value = habit.id;
+        option.textContent = `${habit.icon} ${habit.name}`;
+        habitSelect.appendChild(option);
+    });
+    
+    // Restore selection if still valid
+    if (analyticsFilters.habitId !== 'all') {
+        const stillExists = filteredHabits.some(h => h.id === analyticsFilters.habitId);
+        if (stillExists) {
+            habitSelect.value = analyticsFilters.habitId;
+        } else {
+            analyticsFilters.habitId = 'all';
+        }
+    }
+}
+
+function resetAnalyticsFilters() {
+    analyticsFilters = {
+        period: 'month',
+        category: 'all',
+        habitId: 'all'
+    };
+    
+    // Reset dropdowns
+    const periodSelect = document.getElementById('analytics-period');
+    const categorySelect = document.getElementById('analytics-category');
+    const habitSelect = document.getElementById('analytics-habit');
+    
+    if (periodSelect) periodSelect.value = 'month';
+    if (categorySelect) categorySelect.value = 'all';
+    if (habitSelect) habitSelect.value = 'all';
+    
+    populateHabitFilter();
+    updateAnalyticsFilters();
+    
+    showToast('Filters reset', 'info', 2000);
+}
+
+function getFilteredHabits() {
+    let filtered = habits;
+    
+    // Filter by category
+    if (analyticsFilters.category !== 'all') {
+        filtered = filtered.filter(h => h.category === analyticsFilters.category);
+    }
+    
+    // Filter by specific habit
+    if (analyticsFilters.habitId !== 'all') {
+        filtered = filtered.filter(h => h.id === analyticsFilters.habitId);
+    }
+    
+    return filtered;
+}
+
+function getAnalyticsPeriodDays() {
+    switch (analyticsFilters.period) {
+        case 'week': return 7;
+        case 'month': return 30;
+        case 'quarter': return 90;
+        case 'year': return 365;
+        case 'all': return 730; // Max 2 years for performance
+        default: return 30;
+    }
+}
+
+function getDateRangeForPeriod() {
+    const days = getAnalyticsPeriodDays();
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - days + 1);
+    
+    return { startDate, endDate, days };
+}
+
+function updateFilteredSummaryStats() {
+    const filteredHabits = getFilteredHabits();
+    const { startDate, endDate } = getDateRangeForPeriod();
+    
+    let totalScheduled = 0;
+    let totalCompleted = 0;
+    let bestStreak = 0;
+    
+    // Calculate stats for the filtered period and habits
+    const currentDate = new Date(startDate);
+    while (currentDate <= endDate) {
+        const dateStr = formatDate(currentDate);
+        const dayOfWeek = currentDate.getDay();
+        
+        filteredHabits.forEach(habit => {
+            if (habit.days.includes(dayOfWeek)) {
+                totalScheduled++;
+                if (completions[dateStr] && completions[dateStr][habit.id]) {
+                    totalCompleted++;
+                }
+            }
+        });
+        
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    // Get best streak from filtered habits
+    filteredHabits.forEach(habit => {
+        if (habit.bestStreak > bestStreak) {
+            bestStreak = habit.bestStreak;
+        }
+    });
+    
+    // Update UI
+    const completionRate = totalScheduled > 0 
+        ? Math.round((totalCompleted / totalScheduled) * 100) 
+        : 0;
+    
+    document.getElementById('filtered-completion-rate').textContent = `${completionRate}%`;
+    document.getElementById('filtered-completed').textContent = totalCompleted;
+    document.getElementById('filtered-scheduled').textContent = totalScheduled;
+    document.getElementById('filtered-best-streak').textContent = bestStreak;
 }
 
 function renderWeeklyChart() {
@@ -1144,18 +1311,37 @@ function renderMonthlyChart() {
     const ctx = document.getElementById('monthlyChart');
     if (!ctx) return;
 
-    const days = [];
+    const filteredHabits = getFilteredHabits();
+    const { days: periodDays } = getDateRangeForPeriod();
+    
+    const labels = [];
     const data = [];
     const now = new Date();
     
-    for (let i = 29; i >= 0; i--) {
+    // Determine label format based on period
+    const labelFormat = periodDays <= 7 
+        ? { weekday: 'short' } 
+        : periodDays <= 90 
+            ? { day: 'numeric' }
+            : { month: 'short', day: 'numeric' };
+    
+    // Sample data points (max 60 for readability)
+    const step = periodDays > 60 ? Math.ceil(periodDays / 60) : 1;
+    
+    for (let i = periodDays - 1; i >= 0; i -= step) {
         const date = new Date(now);
         date.setDate(date.getDate() - i);
-        days.push(date.getDate());
+        
+        // For larger periods, show month/day
+        if (periodDays <= 31) {
+            labels.push(date.getDate());
+        } else {
+            labels.push(date.toLocaleDateString('en-US', labelFormat));
+        }
         
         const dateStr = formatDate(date);
         const dayOfWeek = date.getDay();
-        const scheduledHabits = habits.filter(h => h.days.includes(dayOfWeek));
+        const scheduledHabits = filteredHabits.filter(h => h.days.includes(dayOfWeek));
         const completedCount = scheduledHabits.filter(h => 
             completions[dateStr] && completions[dateStr][h.id]
         ).length;
@@ -1166,21 +1352,36 @@ function renderMonthlyChart() {
     if (monthlyChart) {
         monthlyChart.destroy();
     }
+    
+    // Get theme colors
+    const styles = getComputedStyle(document.documentElement);
+    const successColor = styles.getPropertyValue('--success').trim() || '#10b981';
+    const textSecondary = styles.getPropertyValue('--text-secondary').trim() || '#94a3b8';
+    const borderColor = styles.getPropertyValue('--border-color').trim() || '#334155';
+    
+    // Chart title based on filters
+    const periodLabel = {
+        week: 'Last 7 Days',
+        month: 'Last 30 Days',
+        quarter: 'Last 90 Days',
+        year: 'Last Year',
+        all: 'All Time'
+    }[analyticsFilters.period] || 'Progress';
 
     monthlyChart = new Chart(ctx, {
         type: 'line',
         data: {
-            labels: days,
+            labels,
             datasets: [{
                 label: 'Daily Completion %',
                 data,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: successColor,
+                backgroundColor: `${successColor}1a`,
                 fill: true,
                 tension: 0.4,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: '#10b981',
-                pointRadius: 3,
+                pointBackgroundColor: successColor,
+                pointBorderColor: successColor,
+                pointRadius: periodDays > 60 ? 2 : 3,
                 pointHoverRadius: 6
             }]
         },
@@ -1188,7 +1389,14 @@ function renderMonthlyChart() {
             responsive: true,
             maintainAspectRatio: true,
             plugins: {
-                legend: { display: false }
+                legend: { display: false },
+                title: {
+                    display: true,
+                    text: periodLabel,
+                    color: textSecondary,
+                    font: { size: 12, weight: 'normal' },
+                    padding: { bottom: 10 }
+                }
             },
             scales: {
                 y: {
@@ -1196,12 +1404,17 @@ function renderMonthlyChart() {
                     max: 100,
                     ticks: {
                         callback: value => value + '%',
-                        color: '#94a3b8'
+                        color: textSecondary
                     },
-                    grid: { color: '#334155' }
+                    grid: { color: borderColor }
                 },
                 x: {
-                    ticks: { color: '#94a3b8' },
+                    ticks: { 
+                        color: textSecondary,
+                        maxRotation: periodDays > 30 ? 45 : 0,
+                        autoSkip: true,
+                        maxTicksLimit: 15
+                    },
                     grid: { display: false }
                 }
             }
@@ -1213,16 +1426,24 @@ function renderDayOfWeekChart() {
     const ctx = document.getElementById('dayOfWeekChart');
     if (!ctx) return;
 
+    const filteredHabits = getFilteredHabits();
+    const { startDate, endDate } = getDateRangeForPeriod();
+    
     const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const dayData = [0, 0, 0, 0, 0, 0, 0];
     const dayCount = [0, 0, 0, 0, 0, 0, 0];
 
+    // Only count completions within the selected period
     Object.keys(completions).forEach(dateStr => {
         const date = new Date(dateStr);
+        
+        // Check if date is within selected period
+        if (date < startDate || date > endDate) return;
+        
         const dayOfWeek = date.getDay();
         const dayCompletions = completions[dateStr];
         
-        habits.forEach(habit => {
+        filteredHabits.forEach(habit => {
             if (habit.days.includes(dayOfWeek)) {
                 dayCount[dayOfWeek]++;
                 if (dayCompletions[habit.id]) {
@@ -1239,6 +1460,12 @@ function renderDayOfWeekChart() {
     if (dayOfWeekChart) {
         dayOfWeekChart.destroy();
     }
+    
+    // Get theme colors
+    const styles = getComputedStyle(document.documentElement);
+    const primaryLight = styles.getPropertyValue('--primary-light').trim() || '#8b5cf6';
+    const textSecondary = styles.getPropertyValue('--text-secondary').trim() || '#94a3b8';
+    const borderColor = styles.getPropertyValue('--border-color').trim() || '#334155';
 
     dayOfWeekChart = new Chart(ctx, {
         type: 'radar',
@@ -1247,10 +1474,10 @@ function renderDayOfWeekChart() {
             datasets: [{
                 label: 'Completion Rate',
                 data,
-                backgroundColor: 'rgba(139, 92, 246, 0.2)',
-                borderColor: '#8b5cf6',
+                backgroundColor: `${primaryLight}33`,
+                borderColor: primaryLight,
                 borderWidth: 2,
-                pointBackgroundColor: '#8b5cf6'
+                pointBackgroundColor: primaryLight
             }]
         },
         options: {
@@ -1265,11 +1492,11 @@ function renderDayOfWeekChart() {
                     max: 100,
                     ticks: {
                         stepSize: 25,
-                        color: '#94a3b8',
+                        color: textSecondary,
                         backdropColor: 'transparent'
                     },
-                    grid: { color: '#334155' },
-                    pointLabels: { color: '#94a3b8' }
+                    grid: { color: borderColor },
+                    pointLabels: { color: textSecondary }
                 }
             }
         }
@@ -1280,7 +1507,8 @@ function renderStreaksList() {
     const container = document.getElementById('streaks-list');
     if (!container) return;
 
-    const sortedHabits = [...habits].sort((a, b) => b.streak - a.streak);
+    const filteredHabits = getFilteredHabits();
+    const sortedHabits = [...filteredHabits].sort((a, b) => b.streak - a.streak);
 
     if (sortedHabits.length === 0) {
         container.innerHTML = `
@@ -1307,13 +1535,19 @@ function renderHeatmap() {
     const container = document.getElementById('heatmap');
     if (!container) return;
 
+    const filteredHabits = getFilteredHabits();
+    const periodDays = getAnalyticsPeriodDays();
+    
     const weeks = [];
     const now = new Date();
     
-    // Get the start date (52 weeks ago, starting from Sunday)
+    // Calculate heatmap period based on filter (max 52 weeks for performance)
+    const heatmapDays = Math.min(periodDays, 364);
+    
+    // Get the start date based on period
     const startDate = new Date(now);
-    startDate.setDate(startDate.getDate() - 364);
-    startDate.setDate(startDate.getDate() - startDate.getDay());
+    startDate.setDate(startDate.getDate() - heatmapDays);
+    startDate.setDate(startDate.getDate() - startDate.getDay()); // Start from Sunday
 
     let currentDate = new Date(startDate);
     
@@ -1323,7 +1557,7 @@ function renderHeatmap() {
             if (currentDate <= now) {
                 const dateStr = formatDate(currentDate);
                 const dayOfWeek = currentDate.getDay();
-                const scheduledHabits = habits.filter(h => h.days.includes(dayOfWeek));
+                const scheduledHabits = filteredHabits.filter(h => h.days.includes(dayOfWeek));
                 const completedCount = scheduledHabits.filter(h => 
                     completions[dateStr] && completions[dateStr][h.id]
                 ).length;
@@ -1337,10 +1571,14 @@ function renderHeatmap() {
                     else if (rate > 0.75) level = 4;
                 }
                 
+                const habitLabel = filteredHabits.length === 1 
+                    ? filteredHabits[0].name 
+                    : 'habits';
+                
                 week.push({
                     date: dateStr,
                     level,
-                    tooltip: `${currentDate.toLocaleDateString()}: ${completedCount}/${scheduledHabits.length} habits`
+                    tooltip: `${currentDate.toLocaleDateString()}: ${completedCount}/${scheduledHabits.length} ${habitLabel}`
                 });
             }
             currentDate.setDate(currentDate.getDate() + 1);
@@ -1348,6 +1586,16 @@ function renderHeatmap() {
         if (week.length > 0) {
             weeks.push(week);
         }
+    }
+    
+    // Show empty state if no filtered habits
+    if (filteredHabits.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state" style="padding: 40px; text-align: center;">
+                <p style="color: var(--text-secondary);">No habits match the selected filters</p>
+            </div>
+        `;
+        return;
     }
 
     container.innerHTML = `

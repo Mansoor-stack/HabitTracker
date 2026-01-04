@@ -301,6 +301,73 @@
 
             <!-- Analytics View -->
             <section id="analytics-view" class="view">
+                <!-- Analytics Filter Bar -->
+                <div class="analytics-filters">
+                    <div class="filter-group">
+                        <label for="analytics-period">Period</label>
+                        <select id="analytics-period" onchange="updateAnalyticsFilters()">
+                            <option value="week">Last 7 Days</option>
+                            <option value="month" selected>Last 30 Days</option>
+                            <option value="quarter">Last 90 Days</option>
+                            <option value="year">Last Year</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="analytics-category">Category</label>
+                        <select id="analytics-category" onchange="updateAnalyticsCategoryFilter()">
+                            <option value="all">All Categories</option>
+                            <option value="health">🏃 Health & Fitness</option>
+                            <option value="productivity">💼 Productivity</option>
+                            <option value="mindfulness">🧘 Mindfulness</option>
+                            <option value="learning">📚 Learning</option>
+                            <option value="other">📌 Other</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="analytics-habit">Habit</label>
+                        <select id="analytics-habit" onchange="updateAnalyticsFilters()">
+                            <option value="all">All Habits</option>
+                            <!-- Populated dynamically based on category -->
+                        </select>
+                    </div>
+                    <button class="filter-reset-btn" onclick="resetAnalyticsFilters()" title="Reset Filters">
+                        <span>↺</span> Reset
+                    </button>
+                </div>
+
+                <!-- Filtered Summary Stats -->
+                <div class="analytics-summary">
+                    <div class="summary-stat">
+                        <span class="summary-icon">📊</span>
+                        <div class="summary-content">
+                            <span class="summary-value" id="filtered-completion-rate">0%</span>
+                            <span class="summary-label">Completion Rate</span>
+                        </div>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="summary-icon">✅</span>
+                        <div class="summary-content">
+                            <span class="summary-value" id="filtered-completed">0</span>
+                            <span class="summary-label">Completed</span>
+                        </div>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="summary-icon">📅</span>
+                        <div class="summary-content">
+                            <span class="summary-value" id="filtered-scheduled">0</span>
+                            <span class="summary-label">Scheduled</span>
+                        </div>
+                    </div>
+                    <div class="summary-stat">
+                        <span class="summary-icon">🔥</span>
+                        <div class="summary-content">
+                            <span class="summary-value" id="filtered-best-streak">0</span>
+                            <span class="summary-label">Best Streak</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="analytics-grid">
                     <div class="chart-card large">
                         <h3>Monthly Progress</h3>
@@ -674,11 +741,11 @@
         </div>
     </div>
 
-    <script src="config.js?v=7"></script>
-    <script src="utils.js?v=7"></script>
-    <script src="auth.js?v=7"></script>
-    <script src="database.js?v=7"></script>
-    <script src="notifications.js?v=7"></script>
-    <script src="app.js?v=7"></script>
+    <script src="config.js?v=8"></script>
+    <script src="utils.js?v=8"></script>
+    <script src="auth.js?v=8"></script>
+    <script src="database.js?v=8"></script>
+    <script src="notifications.js?v=8"></script>
+    <script src="app.js?v=8"></script>
 </body>
 </html>
