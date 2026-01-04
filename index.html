@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HabitFlow - Build Better Habits</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loader"></div>
+    </div>
+
+    <!-- Authentication Screen -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <span class="auth-logo">🎯</span>
+                <h1>HabitFlow</h1>
+                <p>Build better habits, one day at a time</p>
+            </div>
+
+            <div id="auth-message" class="auth-message" style="display: none;"></div>
+
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form" onsubmit="handleLogin(event)">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Sign In</button>
+                <div class="auth-links">
+                    <a href="#" onclick="toggleAuthForm('forgot')">Forgot password?</a>
+                    <span>•</span>
+                    <a href="#" onclick="toggleAuthForm('signup')">Create account</a>
+                </div>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form" style="display: none;" onsubmit="handleSignup(event)">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" placeholder="Enter your name" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" placeholder="Create a password (min 6 characters)" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <input type="password" id="signup-confirm" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Create Account</button>
+                <div class="auth-links">
+                    <a href="#" onclick="toggleAuthForm('login')">Already have an account? Sign in</a>
+                </div>
+            </form>
+
+            <!-- Forgot Password Form -->
+            <form id="forgot-form" class="auth-form" style="display: none;" onsubmit="handleForgotPassword(event)">
+                <div class="form-group">
+                    <label for="forgot-email">Email</label>
+                    <input type="email" id="forgot-email" placeholder="Enter your email" required>
+                </div>
+                <button type="submit" class="btn-primary btn-full">Send Reset Link</button>
+                <div class="auth-links">
+                    <a href="#" onclick="toggleAuthForm('login')">Back to sign in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display: none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🎯</span>
+                <h1>HabitFlow</h1>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-view="dashboard">
+                    <span class="nav-icon">📊</span>
+                    Dashboard
+                </a>
+                <a href="#" class="nav-item" data-view="habits">
+                    <span class="nav-icon">✅</span>
+                    My Habits
+                </a>
+                <a href="#" class="nav-item" data-view="analytics">
+                    <span class="nav-icon">📈</span>
+                    Analytics
+                </a>
+                <a href="#" class="nav-item" data-view="calendar">
+                    <span class="nav-icon">📅</span>
+                    Calendar
+                </a>
+            </nav>
+            
+            <!-- User Profile Section -->
+            <div class="user-profile">
+                <div class="user-avatar" id="user-avatar">👤</div>
+                <div class="user-info">
+                    <span class="user-name" id="user-name">User</span>
+                    <span class="user-email" id="user-email">user@email.com</span>
+                </div>
+                <button class="btn-logout" onclick="signOut()" title="Sign Out">
+                    🚪
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button class="btn-add-habit" onclick="openAddHabitModal()">
+                    <span>+</span> Add New Habit
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <h2 id="page-title">Dashboard</h2>
+                    <p class="date-display" id="current-date"></p>
+                </div>
+                <div class="header-right">
+                    <div class="streak-badge">
+                        <span class="streak-icon">🔥</span>
+                        <span class="streak-count" id="total-streak">0</span>
+                        <span class="streak-label">Day Streak</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section id="dashboard-view" class="view active">
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon purple">📋</div>
+                        <div class="stat-info">
+                            <h3 id="total-habits">0</h3>
+                            <p>Total Habits</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">✅</div>
+                        <div class="stat-info">
+                            <h3 id="completed-today">0</h3>
+                            <p>Completed Today</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">🎯</div>
+                        <div class="stat-info">
+                            <h3 id="completion-rate">0%</h3>
+                            <p>Completion Rate</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">🏆</div>
+                        <div class="stat-info">
+                            <h3 id="best-streak">0</h3>
+                            <p>Best Streak</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Habits -->
+                <div class="section">
+                    <div class="section-header">
+                        <h3>Today's Habits</h3>
+                        <span class="progress-text" id="today-progress">0/0 completed</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                    <div class="habits-list" id="today-habits-list">
+                        <div class="empty-state">
+                            <span class="empty-icon">🌱</span>
+                            <p>No habits yet. Start by adding your first habit!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <h3>Weekly Overview</h3>
+                        <canvas id="weeklyChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Habit Distribution</h3>
+                        <canvas id="categoryChart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Habits View -->
+            <section id="habits-view" class="view">
+                <div class="habits-header">
+                    <div class="filter-tabs">
+                        <button class="filter-tab active" data-filter="all">All</button>
+                        <button class="filter-tab" data-filter="health">Health</button>
+                        <button class="filter-tab" data-filter="productivity">Productivity</button>
+                        <button class="filter-tab" data-filter="mindfulness">Mindfulness</button>
+                        <button class="filter-tab" data-filter="learning">Learning</button>
+                        <button class="filter-tab" data-filter="other">Other</button>
+                    </div>
+                </div>
+                <div class="habits-grid" id="all-habits-list">
+                    <!-- Habits will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Analytics View -->
+            <section id="analytics-view" class="view">
+                <div class="analytics-grid">
+                    <div class="chart-card large">
+                        <h3>Monthly Progress</h3>
+                        <canvas id="monthlyChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Completion by Day</h3>
+                        <canvas id="dayOfWeekChart"></canvas>
+                    </div>
+                    <div class="chart-card">
+                        <h3>Habit Streaks</h3>
+                        <div class="streaks-list" id="streaks-list">
+                            <!-- Streaks will be rendered here -->
+                        </div>
+                    </div>
+                    <div class="chart-card large">
+                        <h3>Habit Heatmap</h3>
+                        <div class="heatmap-container" id="heatmap">
+                            <!-- Heatmap will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar View -->
+            <section id="calendar-view" class="view">
+                <div class="calendar-header">
+                    <button class="calendar-nav" id="prev-month">❮</button>
+                    <h3 id="calendar-month-year"></h3>
+                    <button class="calendar-nav" id="next-month">❯</button>
+                </div>
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Calendar will be rendered here -->
+                </div>
+                <div class="calendar-legend">
+                    <div class="legend-item"><span class="legend-color none"></span> No data</div>
+                    <div class="legend-item"><span class="legend-color low"></span> 1-25%</div>
+                    <div class="legend-item"><span class="legend-color medium"></span> 26-50%</div>
+                    <div class="legend-item"><span class="legend-color high"></span> 51-75%</div>
+                    <div class="legend-item"><span class="legend-color complete"></span> 76-100%</div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Add Habit Modal -->
+    <div class="modal-overlay" id="add-habit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add New Habit</h3>
+                <button class="modal-close" onclick="closeAddHabitModal()">×</button>
+            </div>
+            <form id="add-habit-form">
+                <div class="form-group">
+                    <label for="habit-name">Habit Name</label>
+                    <input type="text" id="habit-name" placeholder="e.g., Morning Exercise" required>
+                </div>
+                <div class="form-group">
+                    <label for="habit-description">Description (optional)</label>
+                    <textarea id="habit-description" placeholder="What does this habit involve?"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="habit-category">Category</label>
+                    <select id="habit-category">
+                        <option value="health">🏃 Health & Fitness</option>
+                        <option value="productivity">💼 Productivity</option>
+                        <option value="mindfulness">🧘 Mindfulness</option>
+                        <option value="learning">📚 Learning</option>
+                        <option value="other">📌 Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="habit-frequency">Frequency</label>
+                    <select id="habit-frequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekdays">Weekdays Only</option>
+                        <option value="weekends">Weekends Only</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+                <div class="form-group" id="custom-days-group" style="display: none;">
+                    <label>Select Days</label>
+                    <div class="days-selector">
+                        <label class="day-checkbox"><input type="checkbox" value="0"> Sun</label>
+                        <label class="day-checkbox"><input type="checkbox" value="1"> Mon</label>
+                        <label class="day-checkbox"><input type="checkbox" value="2"> Tue</label>
+                        <label class="day-checkbox"><input type="checkbox" value="3"> Wed</label>
+                        <label class="day-checkbox"><input type="checkbox" value="4"> Thu</label>
+                        <label class="day-checkbox"><input type="checkbox" value="5"> Fri</label>
+                        <label class="day-checkbox"><input type="checkbox" value="6"> Sat</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="habit-color">Color</label>
+                    <div class="color-picker">
+                        <input type="radio" name="habit-color" value="#6366f1" id="color-1" checked>
+                        <label for="color-1" style="background: #6366f1;"></label>
+                        <input type="radio" name="habit-color" value="#10b981" id="color-2">
+                        <label for="color-2" style="background: #10b981;"></label>
+                        <input type="radio" name="habit-color" value="#f59e0b" id="color-3">
+                        <label for="color-3" style="background: #f59e0b;"></label>
+                        <input type="radio" name="habit-color" value="#ef4444" id="color-4">
+                        <label for="color-4" style="background: #ef4444;"></label>
+                        <input type="radio" name="habit-color" value="#8b5cf6" id="color-5">
+                        <label for="color-5" style="background: #8b5cf6;"></label>
+                        <input type="radio" name="habit-color" value="#ec4899" id="color-6">
+                        <label for="color-6" style="background: #ec4899;"></label>
+                        <input type="radio" name="habit-color" value="#06b6d4" id="color-7">
+                        <label for="color-7" style="background: #06b6d4;"></label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="habit-icon">Icon</label>
+                    <div class="icon-picker" id="icon-picker">
+                        <button type="button" class="icon-option selected" data-icon="💪">💪</button>
+                        <button type="button" class="icon-option" data-icon="🏃">🏃</button>
+                        <button type="button" class="icon-option" data-icon="📚">📚</button>
+                        <button type="button" class="icon-option" data-icon="💧">💧</button>
+                        <button type="button" class="icon-option" data-icon="🧘">🧘</button>
+                        <button type="button" class="icon-option" data-icon="✍️">✍️</button>
+                        <button type="button" class="icon-option" data-icon="🎵">🎵</button>
+                        <button type="button" class="icon-option" data-icon="💤">💤</button>
+                        <button type="button" class="icon-option" data-icon="🥗">🥗</button>
+                        <button type="button" class="icon-option" data-icon="💻">💻</button>
+                        <button type="button" class="icon-option" data-icon="🎨">🎨</button>
+                        <button type="button" class="icon-option" data-icon="🌱">🌱</button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="closeAddHabitModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Add Habit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Habit Modal -->
+    <div class="modal-overlay" id="edit-habit-modal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Edit Habit</h3>
+                <button class="modal-close" onclick="closeEditHabitModal()">×</button>
+            </div>
+            <form id="edit-habit-form">
+                <input type="hidden" id="edit-habit-id">
+                <div class="form-group">
+                    <label for="edit-habit-name">Habit Name</label>
+                    <input type="text" id="edit-habit-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-habit-description">Description</label>
+                    <textarea id="edit-habit-description"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="edit-habit-category">Category</label>
+                    <select id="edit-habit-category">
+                        <option value="health">🏃 Health & Fitness</option>
+                        <option value="productivity">💼 Productivity</option>
+                        <option value="mindfulness">🧘 Mindfulness</option>
+                        <option value="learning">📚 Learning</option>
+                        <option value="other">📌 Other</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-danger" onclick="deleteHabit()">Delete Habit</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth.js"></script>
+    <script src="database.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
