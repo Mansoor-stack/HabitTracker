@@ -12,6 +12,7 @@ let currentFilter = 'all';
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let selectedIcon = '💪';
+let currentTheme = 'midnight';
 
 // Chart instances
 let weeklyChart = null;
@@ -21,6 +22,117 @@ let dayOfWeekChart = null;
 
 // Confirm dialog resolver
 let confirmResolver = null;
+
+// ============================================
+// Theme System
+// ============================================
+
+const THEMES = {
+    // Dark themes
+    midnight: { name: 'Midnight', mode: 'dark', primary: '#6366f1' },
+    ocean: { name: 'Ocean', mode: 'dark', primary: '#06b6d4' },
+    forest: { name: 'Forest', mode: 'dark', primary: '#22c55e' },
+    sunset: { name: 'Sunset', mode: 'dark', primary: '#f97316' },
+    rose: { name: 'Rose', mode: 'dark', primary: '#ec4899' },
+    lavender: { name: 'Lavender', mode: 'dark', primary: '#a855f7' },
+    // Light themes
+    light: { name: 'Light', mode: 'light', primary: '#6366f1' },
+    snow: { name: 'Snow', mode: 'light', primary: '#0ea5e9' },
+    sage: { name: 'Sage', mode: 'light', primary: '#059669' },
+    cream: { name: 'Cream', mode: 'light', primary: '#d97706' }
+};
+
+function initializeTheme() {
+    // Load saved theme from localStorage
+    const savedTheme = localStorage.getItem('habitflow_theme') || 'midnight';
+    setTheme(savedTheme, false); // false = don't show toast on initial load
+}
+
+function setTheme(themeName, showNotification = true) {
+    if (!THEMES[themeName]) {
+        themeName = 'midnight';
+    }
+    
+    currentTheme = themeName;
+    
+    // Apply theme to document
+    if (themeName === 'midnight') {
+        document.documentElement.removeAttribute('data-theme');
+    } else {
+        document.documentElement.setAttribute('data-theme', themeName);
+    }
+    
+    // Save to localStorage
+    localStorage.setItem('habitflow_theme', themeName);
+    
+    // Update active state in theme picker
+    updateThemePickerUI();
+    
+    // Update chart colors if charts exist
+    updateChartColors();
+    
+    // Show notification
+    if (showNotification) {
+        showToast(`Theme changed to ${THEMES[themeName].name}`, 'success', 2000);
+    }
+}
+
+function updateThemePickerUI() {
+    // Remove active class from all theme cards
+    document.querySelectorAll('.theme-card').forEach(card => {
+        card.classList.remove('active');
+    });
+    
+    // Add active class to current theme
+    const activeCard = document.querySelector(`.theme-card[data-theme="${currentTheme}"]`);
+    if (activeCard) {
+        activeCard.classList.add('active');
+    }
+}
+
+function openThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    if (modal) {
+        modal.classList.add('active');
+        updateThemePickerUI();
+    }
+}
+
+function closeThemeModal() {
+    const modal = document.getElementById('theme-modal');
+    if (modal) {
+        modal.classList.remove('active');
+    }
+}
+
+function updateChartColors() {
+    // Get current theme colors from CSS
+    const styles = getComputedStyle(document.documentElement);
+    const primary = styles.getPropertyValue('--primary').trim();
+    const primaryLight = styles.getPropertyValue('--primary-light').trim();
+    const textPrimary = styles.getPropertyValue('--text-primary').trim();
+    const textSecondary = styles.getPropertyValue('--text-secondary').trim();
+    const success = styles.getPropertyValue('--success').trim();
+    
+    // Update Chart.js defaults
+    if (typeof Chart !== 'undefined') {
+        Chart.defaults.color = textSecondary;
+        Chart.defaults.borderColor = styles.getPropertyValue('--border-color').trim();
+    }
+    
+    // Recreate charts with new colors if they exist
+    if (weeklyChart || categoryChart || monthlyChart || dayOfWeekChart) {
+        // Re-render current view to update charts
+        if (currentView === 'dashboard') {
+            renderDashboard();
+        } else if (currentView === 'analytics') {
+            renderAnalytics();
+        }
+    }
+}
+
+// Initialize theme on script load
+initializeTheme();
 
 // ============================================
 // Toast & Confirm Dialog Helpers

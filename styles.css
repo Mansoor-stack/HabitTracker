@@ -1,23 +1,324 @@
-/* CSS Variables */
+/* ============================================
+   Theme System - Custom Color Schemes
+   ============================================ */
+
+/* Base Theme Variables (Default: Midnight) */
 :root {
+    /* Primary accent colors */
     --primary: #6366f1;
     --primary-light: #818cf8;
     --primary-dark: #4f46e5;
+    
+    /* Status colors */
     --success: #10b981;
     --warning: #f59e0b;
     --danger: #ef4444;
+    
+    /* Background colors */
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --bg-tertiary: #334155;
+    --bg-card: #1e293b;
+    --bg-hover: #334155;
+    --bg-input: #1e293b;
+    
+    /* Text colors */
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
     --text-muted: #64748b;
+    
+    /* Border and effects */
     --border-color: #334155;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    --glow: 0 0 20px rgba(99, 102, 241, 0.3);
+    
+    /* Spacing and shape */
     --radius: 12px;
     --radius-sm: 8px;
     --transition: all 0.3s ease;
+    
+    /* Theme metadata */
+    --theme-name: 'midnight';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Ocean Breeze (Dark)
+   ============================================ */
+[data-theme="ocean"] {
+    --primary: #06b6d4;
+    --primary-light: #22d3ee;
+    --primary-dark: #0891b2;
+    
+    --success: #10b981;
+    --warning: #fbbf24;
+    --danger: #f43f5e;
+    
+    --bg-primary: #0c1222;
+    --bg-secondary: #162032;
+    --bg-tertiary: #1e3a5f;
+    --bg-card: #162032;
+    --bg-hover: #1e3a5f;
+    --bg-input: #162032;
+    
+    --text-primary: #f0f9ff;
+    --text-secondary: #7dd3fc;
+    --text-muted: #38bdf8;
+    
+    --border-color: #1e3a5f;
+    --glow: 0 0 20px rgba(6, 182, 212, 0.3);
+    
+    --theme-name: 'ocean';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Forest (Dark)
+   ============================================ */
+[data-theme="forest"] {
+    --primary: #22c55e;
+    --primary-light: #4ade80;
+    --primary-dark: #16a34a;
+    
+    --success: #22c55e;
+    --warning: #eab308;
+    --danger: #ef4444;
+    
+    --bg-primary: #0a1410;
+    --bg-secondary: #14251c;
+    --bg-tertiary: #1a3328;
+    --bg-card: #14251c;
+    --bg-hover: #1a3328;
+    --bg-input: #14251c;
+    
+    --text-primary: #f0fdf4;
+    --text-secondary: #86efac;
+    --text-muted: #4ade80;
+    
+    --border-color: #1a3328;
+    --glow: 0 0 20px rgba(34, 197, 94, 0.3);
+    
+    --theme-name: 'forest';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Sunset (Dark)
+   ============================================ */
+[data-theme="sunset"] {
+    --primary: #f97316;
+    --primary-light: #fb923c;
+    --primary-dark: #ea580c;
+    
+    --success: #84cc16;
+    --warning: #facc15;
+    --danger: #ef4444;
+    
+    --bg-primary: #1a0f0a;
+    --bg-secondary: #2d1810;
+    --bg-tertiary: #44241a;
+    --bg-card: #2d1810;
+    --bg-hover: #44241a;
+    --bg-input: #2d1810;
+    
+    --text-primary: #fff7ed;
+    --text-secondary: #fdba74;
+    --text-muted: #fb923c;
+    
+    --border-color: #44241a;
+    --glow: 0 0 20px rgba(249, 115, 22, 0.3);
+    
+    --theme-name: 'sunset';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Rose (Dark)
+   ============================================ */
+[data-theme="rose"] {
+    --primary: #ec4899;
+    --primary-light: #f472b6;
+    --primary-dark: #db2777;
+    
+    --success: #10b981;
+    --warning: #fbbf24;
+    --danger: #f43f5e;
+    
+    --bg-primary: #1a0a14;
+    --bg-secondary: #2d1424;
+    --bg-tertiary: #4a1d3d;
+    --bg-card: #2d1424;
+    --bg-hover: #4a1d3d;
+    --bg-input: #2d1424;
+    
+    --text-primary: #fdf2f8;
+    --text-secondary: #f9a8d4;
+    --text-muted: #f472b6;
+    
+    --border-color: #4a1d3d;
+    --glow: 0 0 20px rgba(236, 72, 153, 0.3);
+    
+    --theme-name: 'rose';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Lavender (Dark)
+   ============================================ */
+[data-theme="lavender"] {
+    --primary: #a855f7;
+    --primary-light: #c084fc;
+    --primary-dark: #9333ea;
+    
+    --success: #10b981;
+    --warning: #fbbf24;
+    --danger: #f43f5e;
+    
+    --bg-primary: #140a1a;
+    --bg-secondary: #24142d;
+    --bg-tertiary: #3b1d4a;
+    --bg-card: #24142d;
+    --bg-hover: #3b1d4a;
+    --bg-input: #24142d;
+    
+    --text-primary: #faf5ff;
+    --text-secondary: #d8b4fe;
+    --text-muted: #c084fc;
+    
+    --border-color: #3b1d4a;
+    --glow: 0 0 20px rgba(168, 85, 247, 0.3);
+    
+    --theme-name: 'lavender';
+    --theme-mode: 'dark';
+}
+
+/* ============================================
+   Theme: Light (Clean & Minimal)
+   ============================================ */
+[data-theme="light"] {
+    --primary: #6366f1;
+    --primary-light: #818cf8;
+    --primary-dark: #4f46e5;
+    
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    
+    --bg-primary: #f8fafc;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-hover: #f1f5f9;
+    --bg-input: #ffffff;
+    
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    
+    --border-color: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --glow: 0 0 20px rgba(99, 102, 241, 0.15);
+    
+    --theme-name: 'light';
+    --theme-mode: 'light';
+}
+
+/* ============================================
+   Theme: Snow (Light)
+   ============================================ */
+[data-theme="snow"] {
+    --primary: #0ea5e9;
+    --primary-light: #38bdf8;
+    --primary-dark: #0284c7;
+    
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    
+    --bg-primary: #f0f9ff;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #e0f2fe;
+    --bg-card: #ffffff;
+    --bg-hover: #e0f2fe;
+    --bg-input: #ffffff;
+    
+    --text-primary: #0c4a6e;
+    --text-secondary: #0369a1;
+    --text-muted: #7dd3fc;
+    
+    --border-color: #bae6fd;
+    --shadow: 0 4px 6px -1px rgba(14, 165, 233, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(14, 165, 233, 0.1);
+    --glow: 0 0 20px rgba(14, 165, 233, 0.15);
+    
+    --theme-name: 'snow';
+    --theme-mode: 'light';
+}
+
+/* ============================================
+   Theme: Sage (Light)
+   ============================================ */
+[data-theme="sage"] {
+    --primary: #059669;
+    --primary-light: #10b981;
+    --primary-dark: #047857;
+    
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    
+    --bg-primary: #f0fdf4;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #dcfce7;
+    --bg-card: #ffffff;
+    --bg-hover: #dcfce7;
+    --bg-input: #ffffff;
+    
+    --text-primary: #14532d;
+    --text-secondary: #166534;
+    --text-muted: #86efac;
+    
+    --border-color: #bbf7d0;
+    --shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(5, 150, 105, 0.1);
+    --glow: 0 0 20px rgba(5, 150, 105, 0.15);
+    
+    --theme-name: 'sage';
+    --theme-mode: 'light';
+}
+
+/* ============================================
+   Theme: Cream (Light - Warm)
+   ============================================ */
+[data-theme="cream"] {
+    --primary: #d97706;
+    --primary-light: #f59e0b;
+    --primary-dark: #b45309;
+    
+    --success: #059669;
+    --warning: #d97706;
+    --danger: #dc2626;
+    
+    --bg-primary: #fffbeb;
+    --bg-secondary: #ffffff;
+    --bg-tertiary: #fef3c7;
+    --bg-card: #ffffff;
+    --bg-hover: #fef3c7;
+    --bg-input: #ffffff;
+    
+    --text-primary: #78350f;
+    --text-secondary: #92400e;
+    --text-muted: #fcd34d;
+    
+    --border-color: #fde68a;
+    --shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(217, 119, 6, 0.1);
+    --glow: 0 0 20px rgba(217, 119, 6, 0.15);
+    
+    --theme-name: 'cream';
+    --theme-mode: 'light';
 }
 
 /* Reset & Base */
@@ -2508,3 +2809,295 @@ textarea:focus-visible {
     }
 }
 
+/* ============================================
+   Theme Picker - Settings Button
+   ============================================ */
+
+.nav-settings {
+    padding: 8px 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.settings-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.settings-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-color: var(--primary);
+}
+
+.settings-icon {
+    font-size: 18px;
+}
+
+.settings-text {
+    font-weight: 500;
+}
+
+/* ============================================
+   Theme Picker Modal
+   ============================================ */
+
+.theme-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.theme-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.theme-modal-content {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg), var(--glow);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.theme-modal.active .theme-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.theme-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+}
+
+.theme-modal .modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.theme-modal .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.theme-modal .modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Theme Sections */
+.theme-section {
+    padding: 20px 24px;
+}
+
+.theme-section:not(:last-of-type) {
+    border-bottom: 1px solid var(--border-color);
+}
+
+.theme-section-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 16px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Theme Grid */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+/* Theme Card */
+.theme-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.theme-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+}
+
+.theme-card.active {
+    border-color: var(--primary);
+    background: var(--bg-tertiary);
+}
+
+/* Theme Preview (Color swatches) */
+.theme-preview {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 10px;
+    padding: 8px;
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    width: 100%;
+    justify-content: center;
+}
+
+.theme-preview.light-preview {
+    background: #e2e8f0;
+}
+
+.theme-color {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.theme-color:first-child {
+    border-radius: 6px 3px 3px 6px;
+}
+
+.theme-color:last-child {
+    border-radius: 3px 6px 6px 3px;
+}
+
+/* Theme Name */
+.theme-card .theme-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Theme Checkmark */
+.theme-check {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 20px;
+    height: 20px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s ease;
+}
+
+.theme-card.active .theme-check {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Theme Footer */
+.theme-footer {
+    padding: 16px 24px;
+    background: var(--bg-primary);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.theme-hint {
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+/* Mobile adjustments for theme picker */
+@media (max-width: 768px) {
+    .theme-modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .theme-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .theme-card {
+        padding: 12px 8px;
+    }
+    
+    .theme-color {
+        width: 24px;
+        height: 24px;
+    }
+    
+    .nav-settings {
+        padding: 8px;
+    }
+    
+    .settings-btn {
+        padding: 10px 12px;
+        justify-content: center;
+    }
+    
+    .settings-text {
+        display: none;
+    }
+}
+
+/* Smooth color transitions for theme switching */
+body,
+.sidebar,
+.main-content,
+.card,
+.stat-card,
+.habit-card,
+.modal-content,
+.auth-container,
+.toast,
+.confirm-dialog,
+input,
+select,
+textarea,
+button {
+    transition: background-color 0.3s ease, 
+                border-color 0.3s ease, 
+                color 0.3s ease,
+                box-shadow 0.3s ease;
+}

@@ -141,6 +141,14 @@
                 </a>
             </nav>
             
+            <!-- Settings Button -->
+            <div class="nav-settings">
+                <button class="settings-btn" onclick="openThemeModal()" title="Change Theme">
+                    <span class="settings-icon">🎨</span>
+                    <span class="settings-text">Themes</span>
+                </button>
+            </div>
+            
             <!-- User Profile Section -->
             <div class="user-profile">
                 <div class="user-avatar" id="user-avatar">👤</div>
@@ -443,10 +451,123 @@
         </div>
     </div>
 
-    <script src="config.js?v=2"></script>
-    <script src="utils.js?v=2"></script>
-    <script src="auth.js?v=2"></script>
-    <script src="database.js?v=2"></script>
-    <script src="app.js?v=2"></script>
+    <!-- Theme Picker Modal -->
+    <div id="theme-modal" class="modal theme-modal">
+        <div class="modal-content theme-modal-content">
+            <div class="modal-header">
+                <h3>🎨 Choose Your Theme</h3>
+                <button class="modal-close" onclick="closeThemeModal()">&times;</button>
+            </div>
+            <div class="theme-section">
+                <h4 class="theme-section-title">🌙 Dark Themes</h4>
+                <div class="theme-grid">
+                    <button class="theme-card" data-theme="midnight" onclick="setTheme('midnight')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #6366f1"></div>
+                            <div class="theme-color" style="background: #0f172a"></div>
+                            <div class="theme-color" style="background: #1e293b"></div>
+                        </div>
+                        <span class="theme-name">Midnight</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="ocean" onclick="setTheme('ocean')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #06b6d4"></div>
+                            <div class="theme-color" style="background: #0c1222"></div>
+                            <div class="theme-color" style="background: #162032"></div>
+                        </div>
+                        <span class="theme-name">Ocean</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="forest" onclick="setTheme('forest')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #22c55e"></div>
+                            <div class="theme-color" style="background: #0a1410"></div>
+                            <div class="theme-color" style="background: #14251c"></div>
+                        </div>
+                        <span class="theme-name">Forest</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="sunset" onclick="setTheme('sunset')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #f97316"></div>
+                            <div class="theme-color" style="background: #1a0f0a"></div>
+                            <div class="theme-color" style="background: #2d1810"></div>
+                        </div>
+                        <span class="theme-name">Sunset</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="rose" onclick="setTheme('rose')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #ec4899"></div>
+                            <div class="theme-color" style="background: #1a0a14"></div>
+                            <div class="theme-color" style="background: #2d1424"></div>
+                        </div>
+                        <span class="theme-name">Rose</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="lavender" onclick="setTheme('lavender')">
+                        <div class="theme-preview">
+                            <div class="theme-color" style="background: #a855f7"></div>
+                            <div class="theme-color" style="background: #140a1a"></div>
+                            <div class="theme-color" style="background: #24142d"></div>
+                        </div>
+                        <span class="theme-name">Lavender</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                </div>
+            </div>
+            <div class="theme-section">
+                <h4 class="theme-section-title">☀️ Light Themes</h4>
+                <div class="theme-grid">
+                    <button class="theme-card" data-theme="light" onclick="setTheme('light')">
+                        <div class="theme-preview light-preview">
+                            <div class="theme-color" style="background: #6366f1"></div>
+                            <div class="theme-color" style="background: #f8fafc"></div>
+                            <div class="theme-color" style="background: #ffffff"></div>
+                        </div>
+                        <span class="theme-name">Light</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="snow" onclick="setTheme('snow')">
+                        <div class="theme-preview light-preview">
+                            <div class="theme-color" style="background: #0ea5e9"></div>
+                            <div class="theme-color" style="background: #f0f9ff"></div>
+                            <div class="theme-color" style="background: #ffffff"></div>
+                        </div>
+                        <span class="theme-name">Snow</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="sage" onclick="setTheme('sage')">
+                        <div class="theme-preview light-preview">
+                            <div class="theme-color" style="background: #059669"></div>
+                            <div class="theme-color" style="background: #f0fdf4"></div>
+                            <div class="theme-color" style="background: #ffffff"></div>
+                        </div>
+                        <span class="theme-name">Sage</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                    <button class="theme-card" data-theme="cream" onclick="setTheme('cream')">
+                        <div class="theme-preview light-preview">
+                            <div class="theme-color" style="background: #d97706"></div>
+                            <div class="theme-color" style="background: #fffbeb"></div>
+                            <div class="theme-color" style="background: #ffffff"></div>
+                        </div>
+                        <span class="theme-name">Cream</span>
+                        <span class="theme-check">✓</span>
+                    </button>
+                </div>
+            </div>
+            <div class="theme-footer">
+                <p class="theme-hint">💡 Your theme preference is saved automatically</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js?v=3"></script>
+    <script src="utils.js?v=3"></script>
+    <script src="auth.js?v=3"></script>
+    <script src="database.js?v=3"></script>
+    <script src="app.js?v=3"></script>
 </body>
 </html>
