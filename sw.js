@@ -3,8 +3,8 @@
 // For push notifications and offline support
 // ============================================
 
-const CACHE_NAME = 'habitflow-v3';
-const STATIC_CACHE = 'habitflow-static-v3';
+const CACHE_NAME = 'habitflow-v4';
+const STATIC_CACHE = 'habitflow-static-v4';
 const DYNAMIC_CACHE = 'habitflow-dynamic-v1';
 
 // Core assets that must be cached for offline use

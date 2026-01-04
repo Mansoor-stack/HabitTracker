@@ -1206,6 +1206,130 @@ function updateFilteredSummaryStats() {
     document.getElementById('filtered-completed').textContent = totalCompleted;
     document.getElementById('filtered-scheduled').textContent = totalScheduled;
     document.getElementById('filtered-best-streak').textContent = bestStreak;
+    
+    // Update progress bar
+    updateAnalyticsProgressBar(totalCompleted, totalScheduled, completionRate);
+    
+    // Update chart titles
+    updateChartTitles();
+}
+
+function updateAnalyticsProgressBar(completed, scheduled, rate) {
+    const progressFill = document.getElementById('analytics-progress-fill');
+    const progressPercentage = document.getElementById('progress-percentage');
+    const progressTitle = document.getElementById('progress-title');
+    const completedLabel = document.getElementById('progress-completed-label');
+    const remainingLabel = document.getElementById('progress-remaining-label');
+    
+    if (!progressFill) return;
+    
+    // Update progress bar fill
+    progressFill.style.width = `${rate}%`;
+    
+    // Update percentage display
+    if (progressPercentage) {
+        progressPercentage.textContent = `${rate}%`;
+    }
+    
+    // Update labels
+    if (completedLabel) {
+        completedLabel.textContent = `${completed} completed`;
+    }
+    if (remainingLabel) {
+        const remaining = scheduled - completed;
+        remainingLabel.textContent = `${remaining} remaining`;
+    }
+    
+    // Update title based on filters
+    if (progressTitle) {
+        const periodLabel = getPeriodLabel();
+        const categoryLabel = getCategoryLabel();
+        const habitLabel = getHabitLabel();
+        
+        let title = periodLabel + ' Progress';
+        if (habitLabel !== 'All Habits') {
+            title = habitLabel + ' - ' + periodLabel;
+        } else if (categoryLabel !== 'All Categories') {
+            title = categoryLabel + ' - ' + periodLabel;
+        }
+        
+        progressTitle.textContent = title;
+    }
+}
+
+function getPeriodLabel() {
+    const labels = {
+        week: 'Weekly',
+        month: 'Monthly',
+        quarter: 'Quarterly',
+        year: 'Yearly',
+        all: 'All Time'
+    };
+    return labels[analyticsFilters.period] || 'Monthly';
+}
+
+function getCategoryLabel() {
+    const labels = {
+        all: 'All Categories',
+        health: 'Health & Fitness',
+        productivity: 'Productivity',
+        mindfulness: 'Mindfulness',
+        learning: 'Learning',
+        other: 'Other'
+    };
+    return labels[analyticsFilters.category] || 'All Categories';
+}
+
+function getHabitLabel() {
+    if (analyticsFilters.habitId === 'all') {
+        return 'All Habits';
+    }
+    const habit = habits.find(h => h.id === analyticsFilters.habitId);
+    return habit ? habit.name : 'All Habits';
+}
+
+function updateChartTitles() {
+    const periodLabel = getPeriodLabel();
+    const categoryLabel = getCategoryLabel();
+    const habitLabel = getHabitLabel();
+    
+    // Build suffix based on filters
+    let filterSuffix = '';
+    if (habitLabel !== 'All Habits') {
+        filterSuffix = ` • ${habitLabel}`;
+    } else if (categoryLabel !== 'All Categories') {
+        filterSuffix = ` • ${categoryLabel}`;
+    }
+    
+    // Monthly chart title
+    const monthlyTitle = document.getElementById('monthly-chart-title');
+    if (monthlyTitle) {
+        monthlyTitle.textContent = `${periodLabel} Progress${filterSuffix}`;
+    }
+    
+    // Day of week chart title
+    const dayOfWeekTitle = document.getElementById('dayofweek-chart-title');
+    if (dayOfWeekTitle) {
+        dayOfWeekTitle.textContent = `Completion by Day${filterSuffix}`;
+    }
+    
+    // Streaks title
+    const streaksTitle = document.getElementById('streaks-chart-title');
+    if (streaksTitle) {
+        if (habitLabel !== 'All Habits') {
+            streaksTitle.textContent = `${habitLabel} Streak`;
+        } else if (categoryLabel !== 'All Categories') {
+            streaksTitle.textContent = `${categoryLabel} Streaks`;
+        } else {
+            streaksTitle.textContent = 'Habit Streaks';
+        }
+    }
+    
+    // Heatmap title
+    const heatmapTitle = document.getElementById('heatmap-chart-title');
+    if (heatmapTitle) {
+        heatmapTitle.textContent = `${periodLabel} Activity${filterSuffix}`;
+    }
 }
 
 function renderWeeklyChart() {
