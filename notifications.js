@@ -351,6 +351,7 @@ function openSettingsModal() {
     const modal = document.getElementById('settings-modal');
     if (modal) {
         updateNotificationUI();
+        updateReportPreviewUI();
         modal.classList.add('active');
     }
 }
@@ -400,6 +401,8 @@ async function handleReminderTimeChange(time) {
 async function handleEmailFrequencyChange(frequency) {
     await updateNotificationSettings({ emailFrequency: frequency });
     showToast(`Email reports set to ${frequency}`, 'success');
+    // Update preview to reflect new frequency
+    updateReportPreviewUI();
 }
 
 function formatTime(time24) {
@@ -429,27 +432,41 @@ function sendTestNotification() {
 }
 
 // ============================================
-// Generate Report Preview
+// Generate Report Preview (Enhanced)
 // ============================================
 
 function generateReportPreview() {
+    const frequency = notificationSettings.emailFrequency || 'weekly';
     const today = new Date();
-    const weekAgo = new Date(today);
-    weekAgo.setDate(weekAgo.getDate() - 7);
+    const startDate = new Date(today);
     
-    // Calculate weekly stats
+    if (frequency === 'monthly') {
+        startDate.setDate(startDate.getDate() - 30);
+    } else {
+        startDate.setDate(startDate.getDate() - 7);
+    }
+    
+    // Calculate stats
     let totalCompleted = 0;
     let totalScheduled = 0;
+    const habitCompletions = {};
     
-    for (let d = new Date(weekAgo); d <= today; d.setDate(d.getDate() + 1)) {
+    // Initialize habit completion counts
+    habits.forEach(h => {
+        habitCompletions[h.id] = { habit: h, count: 0, scheduled: 0 };
+    });
+    
+    for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
         const dateStr = d.toISOString().split('T')[0];
         const dayCompletions = completions[dateStr] || {};
         
         habits.forEach(habit => {
             if (isHabitScheduledForDay(habit, d.getDay())) {
                 totalScheduled++;
+                habitCompletions[habit.id].scheduled++;
                 if (dayCompletions[habit.id]) {
                     totalCompleted++;
+                    habitCompletions[habit.id].count++;
                 }
             }
         });
@@ -459,17 +476,141 @@ function generateReportPreview() {
         ? Math.round((totalCompleted / totalScheduled) * 100) 
         : 0;
     
-    // Find best streak
+    // Find best and current streaks
     const bestStreak = habits.reduce((max, h) => Math.max(max, h.bestStreak || 0), 0);
+    const currentStreak = habits.reduce((max, h) => Math.max(max, h.streak || 0), 0);
+    
+    // Get top habits by completion
+    const topHabits = Object.values(habitCompletions)
+        .map(hc => ({
+            id: hc.habit.id,
+            name: hc.habit.name,
+            icon: hc.habit.icon,
+            color: hc.habit.color,
+            completions: hc.count,
+            rate: hc.scheduled > 0 ? Math.round((hc.count / hc.scheduled) * 100) : 0
+        }))
+        .sort((a, b) => b.completions - a.completions)
+        .slice(0, 5);
     
     return {
-        period: `${weekAgo.toLocaleDateString()} - ${today.toLocaleDateString()}`,
+        period: `${startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} - ${today.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`,
+        periodLabel: frequency === 'monthly' ? 'Last 30 Days' : 'Last 7 Days',
         totalCompleted,
         totalScheduled,
         completionRate,
         bestStreak,
-        habitCount: habits.length
+        currentStreak,
+        habitCount: habits.length,
+        topHabits
     };
+}
+
+// Update report preview UI
+function updateReportPreviewUI() {
+    const preview = generateReportPreview();
+    
+    // Update period label
+    const periodEl = document.getElementById('preview-period');
+    if (periodEl) periodEl.textContent = preview.period;
+    
+    // Update progress ring
+    const ringEl = document.getElementById('preview-ring');
+    if (ringEl) {
+        const circumference = 2 * Math.PI * 42; // r=42
+        const dashArray = (preview.completionRate / 100) * circumference;
+        ringEl.style.strokeDasharray = `${dashArray} ${circumference}`;
+        
+        // Color based on rate
+        if (preview.completionRate >= 70) {
+            ringEl.style.stroke = '#10b981'; // Green
+        } else if (preview.completionRate >= 50) {
+            ringEl.style.stroke = '#f59e0b'; // Yellow
+        } else {
+            ringEl.style.stroke = '#ef4444'; // Red
+        }
+    }
+    
+    // Update rate circle text
+    const rateCircleEl = document.getElementById('preview-rate-circle');
+    if (rateCircleEl) rateCircleEl.textContent = `${preview.completionRate}%`;
+    
+    // Update stats
+    const completedEl = document.getElementById('preview-completed');
+    const rateEl = document.getElementById('preview-rate');
+    const streakEl = document.getElementById('preview-streak');
+    
+    if (completedEl) completedEl.textContent = preview.totalCompleted;
+    if (rateEl) rateEl.textContent = `${preview.completionRate}%`;
+    if (streakEl) streakEl.textContent = preview.bestStreak;
+    
+    // Update top habits list
+    const topHabitsListEl = document.getElementById('top-habits-list');
+    if (topHabitsListEl && preview.topHabits.length > 0) {
+        topHabitsListEl.innerHTML = preview.topHabits.map(h => `
+            <div class="top-habit-item">
+                <span class="top-habit-icon">${h.icon}</span>
+                <div class="top-habit-info">
+                    <span class="top-habit-name">${h.name}</span>
+                    <div class="top-habit-bar">
+                        <div class="top-habit-bar-fill" style="width: ${h.rate}%; background: ${h.color}"></div>
+                    </div>
+                </div>
+                <span class="top-habit-rate">${h.rate}%</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('preview-top-habits').style.display = 'block';
+    } else if (document.getElementById('preview-top-habits')) {
+        document.getElementById('preview-top-habits').style.display = 'none';
+    }
+}
+
+// ============================================
+// Send Test Email Report
+// ============================================
+
+async function sendTestEmailReport() {
+    if (!currentUser) {
+        showToast('Please sign in to send a test report', 'warning');
+        return;
+    }
+    
+    const btn = document.getElementById('btn-send-test-report');
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">Sending...</span>';
+    }
+    
+    try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/send-email-report`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${(await supabaseClient.auth.getSession()).data.session?.access_token}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                userId: currentUser.id,
+                isTest: true
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            showToast('Test report sent! Check your email inbox.', 'success');
+        } else {
+            throw new Error(result.error || 'Failed to send report');
+        }
+    } catch (error) {
+        console.error('Error sending test report:', error);
+        showToast('Failed to send test report. Please try again.', 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="btn-icon">📨</span><span class="btn-text">Send Test Report to My Email</span>';
+        }
+    }
 }
 
 // Initialize on load

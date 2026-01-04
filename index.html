@@ -29,7 +29,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=13">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -727,6 +727,21 @@
                 
                 <div class="report-preview" id="report-preview">
                     <h5>📊 Report Preview</h5>
+                    <p class="preview-period" id="preview-period">Last 7 days</p>
+                    
+                    <!-- Progress Circle -->
+                    <div class="preview-progress-circle">
+                        <svg viewBox="0 0 100 100" class="progress-ring">
+                            <circle class="progress-ring-bg" cx="50" cy="50" r="42"/>
+                            <circle class="progress-ring-fill" id="preview-ring" cx="50" cy="50" r="42" 
+                                    stroke-dasharray="0 264"/>
+                        </svg>
+                        <div class="progress-ring-text">
+                            <span class="progress-ring-value" id="preview-rate-circle">0%</span>
+                            <span class="progress-ring-label">Complete</span>
+                        </div>
+                    </div>
+                    
                     <div class="preview-stats">
                         <div class="preview-stat">
                             <span class="preview-value" id="preview-completed">0</span>
@@ -741,6 +756,21 @@
                             <span class="preview-label">Best Streak</span>
                         </div>
                     </div>
+                    
+                    <!-- Top Habits Preview -->
+                    <div class="preview-top-habits" id="preview-top-habits">
+                        <h6>🏅 Top Habits</h6>
+                        <div class="top-habits-list" id="top-habits-list">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+                    
+                    <!-- Send Test Report Button -->
+                    <button class="btn-send-test-report" id="btn-send-test-report" onclick="sendTestEmailReport()">
+                        <span class="btn-icon">📨</span>
+                        <span class="btn-text">Send Test Report to My Email</span>
+                    </button>
+                    <p class="test-report-note">Preview how the email report will look in your inbox</p>
                 </div>
             </div>
             
@@ -775,7 +805,7 @@
     <script src="utils.js?v=12"></script>
     <script src="auth.js?v=12"></script>
     <script src="database.js?v=12"></script>
-    <script src="notifications.js?v=12"></script>
+    <script src="notifications.js?v=13"></script>
     <script src="app.js?v=12"></script>
 </body>
 </html>

@@ -3423,23 +3423,88 @@ button {
 /* Report Preview */
 .report-preview {
     margin-top: 16px;
-    padding: 16px;
+    padding: 20px;
     background: var(--bg-primary);
-    border-radius: var(--radius-sm);
+    border-radius: var(--radius-md);
     border: 1px solid var(--border-color);
 }
 
 .report-preview h5 {
-    font-size: 14px;
+    font-size: 15px;
     font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 12px;
+    margin-bottom: 4px;
+    text-align: center;
+}
+
+.preview-period {
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Progress Circle */
+.preview-progress-circle {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+}
+
+.progress-ring {
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.progress-ring-bg {
+    fill: none;
+    stroke: var(--bg-tertiary);
+    stroke-width: 8;
+}
+
+.progress-ring-fill {
+    fill: none;
+    stroke: var(--primary);
+    stroke-width: 8;
+    stroke-linecap: round;
+    transition: stroke-dasharray 0.5s ease;
+}
+
+.progress-ring-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.progress-ring-value {
+    display: block;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.progress-ring-label {
+    display: block;
+    font-size: 10px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
 }
 
 .preview-stats {
     display: flex;
     justify-content: space-around;
     text-align: center;
+    padding: 16px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
 }
 
 .preview-stat {
@@ -3459,6 +3524,118 @@ button {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Top Habits Preview */
+.preview-top-habits {
+    margin-bottom: 16px;
+}
+
+.preview-top-habits h6 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.top-habits-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.top-habit-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius-sm);
+}
+
+.top-habit-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+
+.top-habit-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.top-habit-name {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.top-habit-bar {
+    height: 4px;
+    background: var(--bg-tertiary);
+    border-radius: 2px;
+    margin-top: 4px;
+    overflow: hidden;
+}
+
+.top-habit-bar-fill {
+    height: 100%;
+    background: var(--primary);
+    border-radius: 2px;
+    transition: width 0.3s ease;
+}
+
+.top-habit-rate {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex-shrink: 0;
+}
+
+/* Send Test Report Button */
+.btn-send-test-report {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btn-send-test-report:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-send-test-report:active {
+    transform: translateY(0);
+}
+
+.btn-send-test-report:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-send-test-report .btn-icon {
+    font-size: 16px;
+}
+
+.test-report-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+    margin-top: 8px;
 }
 
 /* About Section */
