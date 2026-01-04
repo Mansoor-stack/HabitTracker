@@ -66,6 +66,32 @@ function initializeApp() {
     updateStats();
 }
 
+// ============================================
+// Mobile Menu
+// ============================================
+
+function toggleMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuToggle = document.getElementById('menu-toggle');
+    
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('open');
+    menuToggle.classList.toggle('open');
+    document.body.classList.toggle('menu-open');
+}
+
+function closeMobileMenu() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    const menuToggle = document.getElementById('menu-toggle');
+    
+    sidebar.classList.remove('open');
+    overlay.classList.remove('open');
+    menuToggle.classList.remove('open');
+    document.body.classList.remove('menu-open');
+}
+
 function updateCurrentDate() {
     const now = new Date();
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -83,6 +109,7 @@ function setupEventListeners() {
             e.preventDefault();
             const view = item.dataset.view;
             switchView(view);
+            closeMobileMenu(); // Close menu on mobile after navigation
         });
     });
 

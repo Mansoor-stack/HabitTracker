@@ -83,8 +83,25 @@
     </div>
 
     <div class="app-container" id="app-container" style="display: none;">
+        <!-- Mobile Header -->
+        <header class="mobile-header">
+            <button class="menu-toggle" id="menu-toggle" onclick="toggleMobileMenu()">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+            <div class="mobile-logo">
+                <span>🎯</span>
+                <h1>HabitFlow</h1>
+            </div>
+            <button class="mobile-add-btn" onclick="openAddHabitModal()">+</button>
+        </header>
+
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
         <!-- Sidebar -->
-        <aside class="sidebar">
+        <aside class="sidebar" id="sidebar">
             <div class="logo">
                 <span class="logo-icon">🎯</span>
                 <h1>HabitFlow</h1>
