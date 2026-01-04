@@ -419,7 +419,7 @@ body {
     font-size: 14px;
 }
 
-/* Stat Card Tooltip */
+/* Stat Card Tooltip - Positioned BELOW card to avoid browser UI overlap */
 .stat-card-tooltip {
     position: relative;
     cursor: pointer;
@@ -427,17 +427,19 @@ body {
 
 .stat-tooltip {
     position: absolute;
-    bottom: calc(100% + 12px);
+    top: calc(100% + 12px);
     left: 50%;
     transform: translateX(-50%) scale(0.9);
     opacity: 0;
     visibility: hidden;
-    z-index: 100;
+    z-index: 1000;
     pointer-events: none;
     transition: all 0.25s ease;
 }
 
-.stat-card-tooltip:hover .stat-tooltip {
+.stat-card-tooltip:hover .stat-tooltip,
+.stat-card-tooltip:focus .stat-tooltip,
+.stat-card-tooltip.tooltip-active .stat-tooltip {
     opacity: 1;
     visibility: visible;
     transform: translateX(-50%) scale(1);
@@ -449,18 +451,32 @@ body {
     border-radius: var(--radius);
     padding: 16px 20px;
     min-width: 240px;
+    max-width: 280px;
     text-align: center;
     box-shadow: var(--shadow-lg), var(--glow);
+    position: relative;
+}
+
+/* Arrow pointing UP (since tooltip is now below) */
+.tooltip-content::before {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 8px solid transparent;
+    border-bottom-color: var(--border-color);
 }
 
 .tooltip-content::after {
     content: '';
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
-    border: 8px solid transparent;
-    border-top-color: var(--bg-tertiary);
+    border: 7px solid transparent;
+    border-bottom-color: var(--bg-tertiary);
+    margin-bottom: -1px;
 }
 
 .tooltip-emoji {
@@ -3408,5 +3424,282 @@ button {
     
     .preview-value {
         font-size: 20px;
+    }
+}
+
+/* ============================================
+   PWA Install Prompt Banner
+   ============================================ */
+
+.pwa-install-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--bg-card);
+    border-top: 1px solid var(--border-color);
+    padding: 16px 20px;
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    z-index: 10000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+    animation: slideUpBanner 0.4s ease-out;
+}
+
+@keyframes slideUpBanner {
+    from {
+        transform: translateY(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.pwa-install-banner.hidden {
+    display: none;
+}
+
+.pwa-install-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+}
+
+.pwa-install-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.pwa-install-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.pwa-install-text strong {
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.pwa-install-text span {
+    color: var(--text-secondary);
+    font-size: 13px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pwa-install-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.pwa-install-button {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.pwa-install-button:hover {
+    background: var(--primary-dark);
+    transform: scale(1.02);
+}
+
+.pwa-install-button:active {
+    transform: scale(0.98);
+}
+
+.pwa-dismiss-button {
+    background: transparent;
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.pwa-dismiss-button:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+    .pwa-install-banner {
+        flex-direction: column;
+        gap: 12px;
+        padding: 16px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    .pwa-install-content {
+        width: 100%;
+    }
+    
+    .pwa-install-actions {
+        width: 100%;
+    }
+    
+    .pwa-install-button,
+    .pwa-dismiss-button {
+        flex: 1;
+    }
+}
+
+/* ============================================
+   iOS/Mobile PWA Specific Styles
+   ============================================ */
+
+/* iOS Safe Areas */
+@supports (padding: env(safe-area-inset-top)) {
+    .app-header {
+        padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    }
+    
+    .sidebar {
+        padding-top: env(safe-area-inset-top, 0px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        padding-left: env(safe-area-inset-left, 0px);
+    }
+    
+    .main-content {
+        padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    }
+    
+    .modal-content,
+    .settings-modal-content {
+        max-height: calc(90vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    }
+}
+
+/* Standalone PWA mode detection */
+@media all and (display-mode: standalone) {
+    /* Extra padding in standalone mode */
+    body {
+        padding-top: env(safe-area-inset-top, 0px);
+    }
+    
+    .app-header {
+        padding-top: 16px;
+    }
+    
+    /* Hide install prompt in standalone mode */
+    .pwa-install-banner {
+        display: none !important;
+    }
+}
+
+/* iOS-specific touch improvements */
+@supports (-webkit-touch-callout: none) {
+    /* Prevent text selection on interactive elements */
+    button,
+    .btn,
+    .nav-item,
+    .habit-item,
+    .stat-card,
+    .tab-btn {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+    
+    /* Momentum scrolling */
+    .main-content,
+    .habits-list,
+    .modal-content,
+    .settings-modal-content {
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    /* Remove tap highlight */
+    button,
+    a,
+    .clickable {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* Touch-friendly tap targets (minimum 44x44px for iOS) */
+@media (pointer: coarse) {
+    button,
+    .btn,
+    .nav-item,
+    .tab-btn,
+    .habit-checkbox,
+    .habit-action-btn {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    .nav-item {
+        padding: 14px 16px;
+    }
+    
+    .habit-checkbox {
+        width: 28px;
+        height: 28px;
+    }
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+    
+    .toast {
+        animation: none;
+    }
+    
+    .pwa-install-banner {
+        animation: none;
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    :root {
+        --border-color: #ffffff;
+    }
+    
+    .btn,
+    .habit-item,
+    .stat-card,
+    .modal-content {
+        border: 2px solid var(--border-color);
+    }
+}
+
+/* Dark mode system preference (if no theme set) */
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme]) {
+        /* Already dark by default (midnight theme) */
+    }
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme]) {
+        /* Could auto-switch to light, but we keep midnight as default */
     }
 }

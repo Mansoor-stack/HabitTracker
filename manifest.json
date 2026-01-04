@@ -1,0 +1,51 @@
+{
+    "name": "HabitFlow - Build Better Habits",
+    "short_name": "HabitFlow",
+    "description": "Track your daily habits, build streaks, and visualize your progress with beautiful analytics.",
+    "start_url": "./",
+    "scope": "./",
+    "id": "habitflow-pwa",
+    "display": "standalone",
+    "display_override": ["standalone", "minimal-ui"],
+    "orientation": "portrait-primary",
+    "background_color": "#0f172a",
+    "theme_color": "#6366f1",
+    "categories": ["productivity", "lifestyle", "health"],
+    "lang": "en",
+    "dir": "ltr",
+    "icons": [
+        {
+            "src": "icons/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-maskable.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "Add New Habit",
+            "short_name": "Add Habit",
+            "description": "Create a new habit to track",
+            "url": "./?action=add-habit",
+            "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+        },
+        {
+            "name": "View Analytics",
+            "short_name": "Analytics",
+            "description": "See your progress analytics",
+            "url": "./?view=analytics",
+            "icons": [{ "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "launch_handler": {
+        "client_mode": "navigate-existing"
+    }
+}

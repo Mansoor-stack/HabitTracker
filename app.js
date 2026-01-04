@@ -131,6 +131,142 @@ function updateChartColors() {
 initializeTheme();
 
 // ============================================
+// PWA Install Prompt
+// ============================================
+
+let deferredInstallPrompt = null;
+let isAppInstalled = false;
+
+function initPWAInstallPrompt() {
+    // Check if already installed (standalone mode)
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
+        isAppInstalled = true;
+        console.log('[PWA] App is running in standalone mode');
+        return;
+    }
+    
+    // Check if previously dismissed within 7 days
+    const dismissedAt = localStorage.getItem('pwa_install_dismissed');
+    if (dismissedAt) {
+        const dismissedDate = new Date(parseInt(dismissedAt));
+        const daysSinceDismissed = (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) {
+            console.log('[PWA] Install prompt dismissed recently');
+            return;
+        }
+    }
+    
+    // Listen for the beforeinstallprompt event
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredInstallPrompt = e;
+        console.log('[PWA] Install prompt ready');
+        
+        // Show the install banner after a short delay
+        setTimeout(() => {
+            showPWAInstallBanner();
+        }, 3000); // Wait 3 seconds before showing
+    });
+    
+    // Listen for successful installation
+    window.addEventListener('appinstalled', () => {
+        console.log('[PWA] App installed successfully');
+        isAppInstalled = true;
+        hidePWAInstallBanner();
+        deferredInstallPrompt = null;
+        showToast('HabitFlow installed! 🎉', 'success');
+        localStorage.removeItem('pwa_install_dismissed');
+    });
+    
+    // Setup banner buttons
+    setupPWABannerButtons();
+    
+    // Show iOS-specific install instructions
+    if (isIOS() && !isAppInstalled) {
+        setTimeout(() => {
+            showIOSInstallInstructions();
+        }, 5000);
+    }
+}
+
+function isIOS() {
+    return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
+function showPWAInstallBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner && deferredInstallPrompt) {
+        banner.classList.remove('hidden');
+    }
+}
+
+function hidePWAInstallBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) {
+        banner.classList.add('hidden');
+    }
+}
+
+function setupPWABannerButtons() {
+    const installBtn = document.getElementById('pwa-install-btn');
+    const dismissBtn = document.getElementById('pwa-dismiss-btn');
+    
+    if (installBtn) {
+        installBtn.addEventListener('click', async () => {
+            if (!deferredInstallPrompt) return;
+            
+            // Show the native install prompt
+            deferredInstallPrompt.prompt();
+            
+            // Wait for user response
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            console.log('[PWA] User response:', outcome);
+            
+            if (outcome === 'accepted') {
+                showToast('Installing HabitFlow...', 'info');
+            }
+            
+            // Clear the prompt
+            deferredInstallPrompt = null;
+            hidePWAInstallBanner();
+        });
+    }
+    
+    if (dismissBtn) {
+        dismissBtn.addEventListener('click', () => {
+            hidePWAInstallBanner();
+            localStorage.setItem('pwa_install_dismissed', Date.now().toString());
+            showToast('You can install later from browser menu', 'info', 4000);
+        });
+    }
+}
+
+function showIOSInstallInstructions() {
+    // Only show if not already installed and not dismissed
+    if (isAppInstalled) return;
+    
+    const dismissedAt = localStorage.getItem('ios_install_dismissed');
+    if (dismissedAt) {
+        const dismissedDate = new Date(parseInt(dismissedAt));
+        const daysSinceDismissed = (Date.now() - dismissedDate) / (1000 * 60 * 60 * 24);
+        if (daysSinceDismissed < 7) return;
+    }
+    
+    // Show toast with iOS-specific instructions
+    showToast(
+        'Install HabitFlow: Tap the share button and select "Add to Home Screen"',
+        'info',
+        8000
+    );
+    
+    localStorage.setItem('ios_install_dismissed', Date.now().toString());
+}
+
+// Initialize PWA install prompt on load
+initPWAInstallPrompt();
+
+// ============================================
 // Toast & Confirm Dialog Helpers
 // ============================================
 

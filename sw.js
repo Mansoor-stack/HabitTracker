@@ -3,78 +3,150 @@
 // For push notifications and offline support
 // ============================================
 
-const CACHE_NAME = 'habitflow-v1';
+const CACHE_NAME = 'habitflow-v2';
+const STATIC_CACHE = 'habitflow-static-v2';
+const DYNAMIC_CACHE = 'habitflow-dynamic-v1';
+
+// Core assets that must be cached for offline use
 const ASSETS_TO_CACHE = [
-    '/',
-    '/index.html',
-    '/styles.css',
-    '/app.js',
-    '/auth.js',
-    '/database.js',
-    '/notifications.js',
-    '/utils.js',
-    '/config.js'
+    './',
+    './index.html',
+    './styles.css',
+    './app.js',
+    './auth.js',
+    './database.js',
+    './notifications.js',
+    './utils.js',
+    './config.js',
+    './manifest.json',
+    './icons/icon.svg',
+    './icons/icon-maskable.svg'
+];
+
+// External resources to cache
+const EXTERNAL_ASSETS = [
+    'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js',
+    'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap'
 ];
 
 // Install event - cache assets
 self.addEventListener('install', (event) => {
+    console.log('[SW] Installing service worker...');
     event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then((cache) => {
-                console.log('Caching app assets');
-                return cache.addAll(ASSETS_TO_CACHE);
-            })
-            .catch((error) => {
-                console.log('Cache install error:', error);
-            })
+        Promise.all([
+            // Cache static assets
+            caches.open(STATIC_CACHE)
+                .then((cache) => {
+                    console.log('[SW] Caching static assets');
+                    return cache.addAll(ASSETS_TO_CACHE);
+                }),
+            // Cache external assets separately (optional, may fail due to CORS)
+            caches.open(DYNAMIC_CACHE)
+                .then((cache) => {
+                    console.log('[SW] Caching external assets');
+                    return Promise.allSettled(
+                        EXTERNAL_ASSETS.map(url => 
+                            fetch(url, { mode: 'cors' })
+                                .then(response => {
+                                    if (response.ok) {
+                                        return cache.put(url, response);
+                                    }
+                                })
+                                .catch(() => console.log('[SW] Could not cache:', url))
+                        )
+                    );
+                })
+        ]).catch((error) => {
+            console.log('[SW] Cache install error:', error);
+        })
     );
     self.skipWaiting();
 });
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
+    console.log('[SW] Activating service worker...');
+    const currentCaches = [STATIC_CACHE, DYNAMIC_CACHE];
     event.waitUntil(
         caches.keys().then((cacheNames) => {
             return Promise.all(
                 cacheNames
-                    .filter((name) => name !== CACHE_NAME)
-                    .map((name) => caches.delete(name))
+                    .filter((name) => !currentCaches.includes(name))
+                    .map((name) => {
+                        console.log('[SW] Deleting old cache:', name);
+                        return caches.delete(name);
+                    })
             );
+        }).then(() => {
+            console.log('[SW] Service worker activated');
         })
     );
     self.clients.claim();
 });
 
-// Fetch event - serve from cache, fall back to network
+// Fetch event - Network first for HTML, Cache first for assets
 self.addEventListener('fetch', (event) => {
-    // Skip non-GET requests and external URLs
+    // Skip non-GET requests
     if (event.request.method !== 'GET') return;
-    if (!event.request.url.startsWith(self.location.origin)) return;
     
+    const url = new URL(event.request.url);
+    
+    // Skip Supabase API requests - always go to network
+    if (url.hostname.includes('supabase')) return;
+    
+    // For HTML pages - Network first, fall back to cache
+    if (event.request.mode === 'navigate' || 
+        event.request.headers.get('accept')?.includes('text/html')) {
+        event.respondWith(
+            fetch(event.request)
+                .then((response) => {
+                    // Cache the latest version
+                    const responseClone = response.clone();
+                    caches.open(STATIC_CACHE).then((cache) => {
+                        cache.put(event.request, responseClone);
+                    });
+                    return response;
+                })
+                .catch(() => {
+                    // Offline - return cached version
+                    return caches.match(event.request)
+                        .then((cached) => cached || caches.match('./index.html'));
+                })
+        );
+        return;
+    }
+    
+    // For other assets - Cache first, fall back to network
     event.respondWith(
         caches.match(event.request)
             .then((cachedResponse) => {
                 if (cachedResponse) {
-                    // Return cached version
                     return cachedResponse;
                 }
                 
-                // Fetch from network
                 return fetch(event.request)
                     .then((response) => {
-                        // Don't cache non-successful responses
                         if (!response || response.status !== 200) {
                             return response;
                         }
                         
-                        // Clone and cache the response
+                        // Cache successful responses
                         const responseToCache = response.clone();
-                        caches.open(CACHE_NAME)
+                        caches.open(DYNAMIC_CACHE)
                             .then((cache) => {
                                 cache.put(event.request, responseToCache);
                             });
                         
                         return response;
+                    })
+                    .catch(() => {
+                        // Return offline placeholder for images if needed
+                        if (event.request.destination === 'image') {
+                            return new Response(
+                                '<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><text x="50%" y="50%" text-anchor="middle">📷</text></svg>',
+                                { headers: { 'Content-Type': 'image/svg+xml' } }
+                            );
+                        }
                     });
             })
     );
