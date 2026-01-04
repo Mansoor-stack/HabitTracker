@@ -2955,7 +2955,7 @@ textarea:focus-visible {
         padding: 10px 12px;
         justify-content: center;
     }
-    
+
     .settings-text {
         display: none;
     }
@@ -2976,8 +2976,357 @@ input,
 select,
 textarea,
 button {
-    transition: background-color 0.3s ease, 
-                border-color 0.3s ease, 
+    transition: background-color 0.3s ease,
+                border-color 0.3s ease,
                 color 0.3s ease,
                 box-shadow 0.3s ease;
+}
+
+/* ============================================
+   Settings Modal Styles
+   ============================================ */
+
+.settings-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.settings-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.settings-modal-content {
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    width: 90%;
+    max-width: 500px;
+    max-height: 85vh;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg), var(--glow);
+    transform: scale(0.9) translateY(20px);
+    transition: transform 0.3s ease;
+}
+
+.settings-modal.active .settings-modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.settings-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+    background: linear-gradient(135deg, var(--bg-tertiary), var(--bg-secondary));
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.settings-modal .modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.settings-modal .modal-close {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 28px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    transition: color 0.2s;
+}
+
+.settings-modal .modal-close:hover {
+    color: var(--text-primary);
+}
+
+/* Settings Sections */
+.settings-section {
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.settings-section:last-of-type {
+    border-bottom: none;
+}
+
+.settings-section-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.settings-section-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+}
+
+/* Setting Row */
+.setting-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.setting-row:last-child {
+    border-bottom: none;
+}
+
+.setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.setting-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.setting-desc {
+    font-size: 12px;
+    color: var(--text-muted);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    width: 50px;
+    height: 26px;
+    flex-shrink: 0;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 26px;
+    transition: all 0.3s ease;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: var(--text-muted);
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+    background-color: var(--primary);
+    border-color: var(--primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+    background-color: white;
+}
+
+.toggle-switch input:focus + .toggle-slider {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+/* Permission Status Badge */
+.permission-status {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+}
+
+.permission-status.granted {
+    background: rgba(16, 185, 129, 0.2);
+    color: var(--success);
+}
+
+.permission-status.denied {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+}
+
+.permission-status.default {
+    background: var(--bg-tertiary);
+    color: var(--text-muted);
+}
+
+/* Time Input */
+.time-input {
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.time-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
+}
+
+/* Frequency Select */
+.frequency-select {
+    padding: 8px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 120px;
+}
+
+.frequency-select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+/* Secondary Button */
+.btn-secondary {
+    padding: 10px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+}
+
+/* Report Preview */
+.report-preview {
+    margin-top: 16px;
+    padding: 16px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.report-preview h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+}
+
+.preview-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.preview-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.preview-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary);
+}
+
+.preview-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* About Section */
+.about-info {
+    text-align: center;
+    padding: 12px 0;
+}
+
+.about-info p {
+    margin: 4px 0;
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.about-info .text-muted {
+    color: var(--text-muted);
+    font-size: 12px;
+}
+
+/* Nav Settings with multiple buttons */
+.nav-settings {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* Mobile adjustments for settings */
+@media (max-width: 768px) {
+    .settings-modal-content {
+        width: 95%;
+        max-height: 90vh;
+    }
+    
+    .setting-row {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+    
+    .setting-row .btn-secondary {
+        width: 100%;
+    }
+    
+    .preview-stats {
+        gap: 8px;
+    }
+    
+    .preview-value {
+        font-size: 20px;
+    }
 }

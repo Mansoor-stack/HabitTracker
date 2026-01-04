@@ -330,12 +330,12 @@ In `index.html`, add to the icon picker grid:
 
 ## 🛣️ Roadmap
 
-- [ ] Push notifications for habit reminders
+- [x] Push notifications for habit reminders ✅
+- [x] Custom themes and color schemes ✅
+- [x] Weekly/monthly reports via email ✅
 - [ ] Social features (share progress, challenges)
 - [ ] Data export (CSV, JSON)
-- [ ] Custom themes and color schemes
 - [ ] Habit templates library
-- [ ] Weekly/monthly reports via email
 
 ---
 

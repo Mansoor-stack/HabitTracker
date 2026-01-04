@@ -147,6 +147,10 @@
                     <span class="settings-icon">🎨</span>
                     <span class="settings-text">Themes</span>
                 </button>
+                <button class="settings-btn" onclick="openSettingsModal()" title="Settings">
+                    <span class="settings-icon">⚙️</span>
+                    <span class="settings-text">Settings</span>
+                </button>
             </div>
             
             <!-- User Profile Section -->
@@ -528,10 +532,108 @@
         </div>
     </div>
 
-    <script src="config.js?v=4"></script>
-    <script src="utils.js?v=4"></script>
-    <script src="auth.js?v=4"></script>
-    <script src="database.js?v=4"></script>
-    <script src="app.js?v=4"></script>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal settings-modal">
+        <div class="modal-content settings-modal-content">
+            <div class="modal-header">
+                <h3>⚙️ Settings</h3>
+                <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+            </div>
+            
+            <!-- Notifications Section -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">🔔 Push Notifications</h4>
+                <p class="settings-section-desc">Get daily reminders to complete your habits</p>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Enable Notifications</span>
+                        <span id="notification-permission-status" class="permission-status">Not set</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="notification-toggle" onchange="handleNotificationToggle(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Reminder Time</span>
+                        <span class="setting-desc">When to send daily reminders</span>
+                    </div>
+                    <input type="time" id="reminder-time" class="time-input" value="09:00" onchange="handleReminderTimeChange(this.value)">
+                </div>
+                
+                <div class="setting-row">
+                    <button class="btn-secondary" onclick="sendTestNotification()">
+                        🧪 Send Test Notification
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Email Reports Section -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">📧 Email Reports</h4>
+                <p class="settings-section-desc">Receive progress reports in your inbox</p>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Enable Email Reports</span>
+                        <span class="setting-desc">Get habit summaries via email</span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="email-toggle" onchange="handleEmailToggle(this.checked)">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                
+                <div class="setting-row">
+                    <div class="setting-info">
+                        <span class="setting-label">Report Frequency</span>
+                        <span class="setting-desc">How often to receive reports</span>
+                    </div>
+                    <select id="email-frequency" class="frequency-select" onchange="handleEmailFrequencyChange(this.value)">
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                
+                <div class="report-preview" id="report-preview">
+                    <h5>📊 Report Preview</h5>
+                    <div class="preview-stats">
+                        <div class="preview-stat">
+                            <span class="preview-value" id="preview-completed">0</span>
+                            <span class="preview-label">Completed</span>
+                        </div>
+                        <div class="preview-stat">
+                            <span class="preview-value" id="preview-rate">0%</span>
+                            <span class="preview-label">Success Rate</span>
+                        </div>
+                        <div class="preview-stat">
+                            <span class="preview-value" id="preview-streak">0</span>
+                            <span class="preview-label">Best Streak</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- About Section -->
+            <div class="settings-section">
+                <h4 class="settings-section-title">ℹ️ About</h4>
+                <div class="about-info">
+                    <p><strong>HabitFlow</strong> v2.0</p>
+                    <p>Build better habits, one day at a time</p>
+                    <p class="text-muted">Made with ❤️ for productivity</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js?v=5"></script>
+    <script src="utils.js?v=5"></script>
+    <script src="auth.js?v=5"></script>
+    <script src="database.js?v=5"></script>
+    <script src="notifications.js?v=5"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>

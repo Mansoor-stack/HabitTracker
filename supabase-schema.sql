@@ -49,6 +49,9 @@ CREATE TABLE IF NOT EXISTS profiles (
     avatar_url TEXT,
     timezone VARCHAR(50) DEFAULT 'UTC',
     notification_enabled BOOLEAN DEFAULT true,
+    email_reports BOOLEAN DEFAULT false,
+    email_frequency VARCHAR(20) DEFAULT 'weekly',
+    reminder_time TIME DEFAULT '09:00:00',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
