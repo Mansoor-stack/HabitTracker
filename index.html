@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HabitFlow - Build Better Habits</title>
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=6">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -206,12 +206,13 @@
                             <p>Completed Today</p>
                         </div>
                     </div>
-                    <div class="stat-card">
+                    <div class="stat-card stat-card-tooltip" id="completion-rate-card">
                         <div class="stat-icon orange">🎯</div>
                         <div class="stat-info">
                             <h3 id="completion-rate">0%</h3>
                             <p>Completion Rate</p>
                         </div>
+                        <div class="stat-tooltip" id="completion-tooltip"></div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-icon blue">🏆</div>
@@ -629,11 +630,11 @@
         </div>
     </div>
 
-    <script src="config.js?v=5"></script>
-    <script src="utils.js?v=5"></script>
-    <script src="auth.js?v=5"></script>
-    <script src="database.js?v=5"></script>
-    <script src="notifications.js?v=5"></script>
-    <script src="app.js?v=5"></script>
+    <script src="config.js?v=6"></script>
+    <script src="utils.js?v=6"></script>
+    <script src="auth.js?v=6"></script>
+    <script src="database.js?v=6"></script>
+    <script src="notifications.js?v=6"></script>
+    <script src="app.js?v=6"></script>
 </body>
 </html>

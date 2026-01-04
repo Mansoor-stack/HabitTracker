@@ -1337,6 +1337,9 @@ function updateStats() {
         Math.round((totalCompleted / totalScheduled) * 100) : 0;
     document.getElementById('completion-rate').textContent = completionRate + '%';
     
+    // Update completion rate tooltip with dynamic motivation
+    updateCompletionRateTooltip(completionRate, totalCompleted, totalScheduled);
+    
     // Best streak
     const bestStreak = habits.reduce((max, h) => Math.max(max, h.bestStreak), 0);
     document.getElementById('best-streak').textContent = bestStreak;
@@ -1345,6 +1348,100 @@ function updateStats() {
     const totalStreak = habits.reduce((sum, h) => sum + h.streak, 0);
     document.getElementById('total-streak').textContent = 
         habits.length > 0 ? Math.round(totalStreak / habits.length) : 0;
+}
+
+// ============================================
+// Completion Rate Tooltip - Dynamic Motivation
+// ============================================
+
+function updateCompletionRateTooltip(rate, completed, scheduled) {
+    const tooltip = document.getElementById('completion-tooltip');
+    if (!tooltip) return;
+    
+    const remaining = scheduled - completed;
+    const message = getMotivationMessage(rate, completed, remaining);
+    
+    tooltip.innerHTML = `
+        <div class="tooltip-content">
+            <div class="tooltip-emoji">${message.emoji}</div>
+            <div class="tooltip-message">${message.text}</div>
+            <div class="tooltip-stats">
+                <span>✅ ${completed} completed</span>
+                <span>📋 ${remaining} remaining</span>
+            </div>
+            <div class="tooltip-period">Last 30 days</div>
+        </div>
+    `;
+}
+
+function getMotivationMessage(rate, completed, remaining) {
+    // No habits yet
+    if (completed === 0 && remaining === 0) {
+        return {
+            emoji: '🌱',
+            text: 'Add your first habit to start tracking!'
+        };
+    }
+    
+    // Perfect score
+    if (rate === 100) {
+        const perfectMessages = [
+            'Unstoppable! You\'re a habit master! 🏆',
+            'Perfect score! You\'re on fire! 🔥',
+            '100%! Incredible discipline! 💪',
+            'Flawless! Keep this legendary streak! ⭐'
+        ];
+        return {
+            emoji: '🎉',
+            text: perfectMessages[Math.floor(Math.random() * perfectMessages.length)]
+        };
+    }
+    
+    // Excellent (90-99%)
+    if (rate >= 90) {
+        return {
+            emoji: '🌟',
+            text: `Almost perfect! Just ${remaining} more to hit 100%!`
+        };
+    }
+    
+    // Great (75-89%)
+    if (rate >= 75) {
+        return {
+            emoji: '💪',
+            text: `Great progress! You're building strong habits!`
+        };
+    }
+    
+    // Good (50-74%)
+    if (rate >= 50) {
+        return {
+            emoji: '📈',
+            text: `Solid effort! Every completion counts. Keep pushing!`
+        };
+    }
+    
+    // Needs work (25-49%)
+    if (rate >= 25) {
+        return {
+            emoji: '🚀',
+            text: `Room to grow! Small steps lead to big changes.`
+        };
+    }
+    
+    // Just starting (1-24%)
+    if (rate > 0) {
+        return {
+            emoji: '🌅',
+            text: `The journey begins! You've got this!`
+        };
+    }
+    
+    // Zero completion but has scheduled
+    return {
+        emoji: '💡',
+        text: `Today is a fresh start! Complete one habit now!`
+    };
 }
 
 // ============================================
