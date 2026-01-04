@@ -161,6 +161,10 @@ async function loadUserData() {
         updateLoadingProgress(100);
         clearLoadingTimeout();
 
+        // Clear any stale retry UI after a successful load
+        const retryToast = document.querySelector('.retry-toast');
+        if (retryToast) retryToast.remove();
+
         // Refresh UI
         refreshAll();
         
