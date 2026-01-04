@@ -6,14 +6,19 @@ let currentUser = null;
 
 // Check authentication state on page load
 async function checkAuth() {
-    const { data: { session } } = await supabaseClient.auth.getSession();
-    
-    if (session) {
-        currentUser = session.user;
-        showApp();
-        await loadUserData();
-        initializeApp(); // Initialize the app after loading data
-    } else {
+    try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        
+        if (session) {
+            currentUser = session.user;
+            showApp();
+            await loadUserData();
+            initializeApp();
+        } else {
+            showAuthScreen();
+        }
+    } catch (error) {
+        console.error('Auth check failed:', error);
         showAuthScreen();
     }
 }
@@ -24,12 +29,12 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session.user;
         showApp();
         await loadUserData();
-        initializeApp(); // Initialize the app after loading data
+        initializeApp();
+        showToast('Welcome back! 👋', 'success');
     } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         showAuthScreen();
     } else if (event === 'TOKEN_REFRESHED') {
-        // Session token was refreshed, user stays logged in
         console.log('Session refreshed');
     }
 });
@@ -37,8 +42,6 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
 // Sign up with email and password
 async function signUp(email, password, name) {
     try {
-        showLoading(true);
-        
         const { data, error } = await supabaseClient.auth.signUp({
             email,
             password,
@@ -52,24 +55,21 @@ async function signUp(email, password, name) {
         if (error) throw error;
 
         if (data.user && !data.session) {
-            // Email confirmation required
-            showMessage('Please check your email to confirm your account.', 'success');
+            showToast('Please check your email to confirm your account.', 'info', 5000);
+        } else if (data.session) {
+            showToast('Account created successfully! 🎉', 'success');
         }
         
         return { success: true, data };
     } catch (error) {
-        showMessage(error.message, 'error');
+        showToast(error.message, 'error');
         return { success: false, error };
-    } finally {
-        showLoading(false);
     }
 }
 
 // Sign in with email and password
 async function signIn(email, password) {
     try {
-        showLoading(true);
-        
         const { data, error } = await supabaseClient.auth.signInWithPassword({
             email,
             password
@@ -79,17 +79,15 @@ async function signIn(email, password) {
         
         return { success: true, data };
     } catch (error) {
-        showMessage(error.message, 'error');
+        showToast(error.message, 'error');
         return { success: false, error };
-    } finally {
-        showLoading(false);
     }
 }
 
 // Sign out
 async function signOut() {
     try {
-        showLoading(true);
+        showLoading('Saving your progress...');
         
         // Sync any pending data before signing out
         await syncPendingData();
@@ -102,33 +100,29 @@ async function signOut() {
         completions = {};
         currentUser = null;
         
-        showMessage('Signed out successfully', 'success');
+        showToast('Signed out successfully. See you soon! 👋', 'success');
         
     } catch (error) {
-        showMessage(error.message, 'error');
+        showToast(error.message, 'error');
     } finally {
-        showLoading(false);
+        hideLoading();
     }
 }
 
 // Reset password
 async function resetPassword(email) {
     try {
-        showLoading(true);
-        
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
             redirectTo: window.location.origin + '/reset-password.html'
         });
 
         if (error) throw error;
         
-        showMessage('Password reset email sent. Check your inbox.', 'success');
+        showToast('Password reset email sent. Check your inbox.', 'success', 5000);
         return { success: true };
     } catch (error) {
-        showMessage(error.message, 'error');
+        showToast(error.message, 'error');
         return { success: false, error };
-    } finally {
-        showLoading(false);
     }
 }
 
@@ -136,6 +130,7 @@ async function resetPassword(email) {
 function showAuthScreen() {
     document.getElementById('auth-screen').style.display = 'flex';
     document.getElementById('app-container').style.display = 'none';
+    hideLoading();
 }
 
 function showApp() {
@@ -148,25 +143,28 @@ function showApp() {
         document.getElementById('user-name').textContent = userName;
         document.getElementById('user-email').textContent = currentUser.email;
     }
-}
-
-function showLoading(show) {
-    const loader = document.getElementById('loading-overlay');
-    if (loader) {
-        loader.style.display = show ? 'flex' : 'none';
+    
+    // Initialize connection status
+    if (typeof updateConnectionStatus === 'function') {
+        updateConnectionStatus();
     }
 }
 
 function showMessage(message, type = 'info') {
-    const messageEl = document.getElementById('auth-message');
-    if (messageEl) {
-        messageEl.textContent = message;
-        messageEl.className = `auth-message ${type}`;
-        messageEl.style.display = 'block';
-        
-        setTimeout(() => {
-            messageEl.style.display = 'none';
-        }, 5000);
+    // Legacy function - redirect to toast for backward compatibility
+    if (typeof showToast === 'function') {
+        showToast(message, type);
+    } else {
+        const messageEl = document.getElementById('auth-message');
+        if (messageEl) {
+            messageEl.textContent = message;
+            messageEl.className = `auth-message ${type}`;
+            messageEl.style.display = 'block';
+            
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
     }
 }
 

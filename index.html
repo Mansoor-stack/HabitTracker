@@ -10,9 +10,25 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+    <!-- Skip Link for Accessibility -->
+    <a href="#app-container" class="skip-link">Skip to main content</a>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+    <!-- Connection Status -->
+    <div id="connection-status" class="connection-status">
+        <span class="connection-dot"></span>
+        <span class="connection-text">Offline</span>
+    </div>
+
     <!-- Loading Overlay -->
     <div id="loading-overlay" class="loading-overlay" style="display: none;">
-        <div class="loader"></div>
+        <div class="loading-spinner-large"></div>
+        <div class="loading-text">Loading your habits...</div>
+        <div class="loading-progress">
+            <div class="loading-progress-bar" id="loading-progress-bar"></div>
+        </div>
     </div>
 
     <!-- Authentication Screen -->
@@ -82,10 +98,10 @@
         </div>
     </div>
 
-    <div class="app-container" id="app-container" style="display: none;">
+    <main class="app-container" id="app-container" role="main" style="display: none;">
         <!-- Mobile Header -->
         <header class="mobile-header">
-            <button class="menu-toggle" id="menu-toggle" onclick="toggleMobileMenu()">
+            <button class="menu-toggle" id="menu-toggle" onclick="toggleMobileMenu()" aria-label="Toggle navigation menu" aria-expanded="false">
                 <span></span>
                 <span></span>
                 <span></span>
@@ -94,7 +110,7 @@
                 <span>🎯</span>
                 <h1>HabitFlow</h1>
             </div>
-            <button class="mobile-add-btn" onclick="openAddHabitModal()">+</button>
+            <button class="mobile-add-btn" onclick="openAddHabitModal()" aria-label="Add new habit">+</button>
         </header>
 
         <!-- Sidebar Overlay -->
@@ -414,7 +430,21 @@
         </div>
     </div>
 
+    <!-- Confirm Dialog -->
+    <div id="confirm-overlay" class="confirm-overlay">
+        <div class="confirm-dialog">
+            <div class="confirm-icon warning">⚠️</div>
+            <div class="confirm-title">Confirm Action</div>
+            <div class="confirm-message">Are you sure you want to proceed?</div>
+            <div class="confirm-actions">
+                <button class="confirm-cancel" onclick="hideConfirmDialog(false)">Cancel</button>
+                <button class="confirm-ok" onclick="hideConfirmDialog(true)">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <script src="config.js"></script>
+    <script src="utils.js"></script>
     <script src="auth.js"></script>
     <script src="database.js"></script>
     <script src="app.js"></script>

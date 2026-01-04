@@ -19,38 +19,195 @@ let categoryChart = null;
 let monthlyChart = null;
 let dayOfWeekChart = null;
 
+// Confirm dialog resolver
+let confirmResolver = null;
+
+// ============================================
+// Toast & Confirm Dialog Helpers
+// ============================================
+
+function showToast(message, type = 'info', duration = 3000) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const icons = {
+        success: '✓',
+        error: '✕',
+        warning: '⚠',
+        info: 'ℹ'
+    };
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type]}</span>
+        <div class="toast-content">
+            <div class="toast-message">${message}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Trigger animation
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+    
+    // Auto remove
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, duration);
+}
+
+function showConfirmDialog(title, message, type = 'warning') {
+    return new Promise(resolve => {
+        const overlay = document.getElementById('confirm-overlay');
+        if (!overlay) {
+            resolve(false);
+            return;
+        }
+        
+        overlay.querySelector('.confirm-title').textContent = title;
+        overlay.querySelector('.confirm-message').textContent = message;
+        overlay.querySelector('.confirm-icon').className = `confirm-icon ${type}`;
+        overlay.querySelector('.confirm-icon').textContent = type === 'danger' ? '🗑️' : '⚠️';
+        
+        confirmResolver = resolve;
+        overlay.classList.add('show');
+    });
+}
+
+function hideConfirmDialog(result) {
+    const overlay = document.getElementById('confirm-overlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+    if (confirmResolver) {
+        confirmResolver(result);
+        confirmResolver = null;
+    }
+}
+
+// ============================================
+// Connection Status
+// ============================================
+
+function updateConnectionStatus() {
+    const status = document.getElementById('connection-status');
+    if (!status) return;
+    
+    const isOnline = navigator.onLine;
+    status.classList.toggle('online', isOnline);
+    status.classList.toggle('offline', !isOnline);
+    status.querySelector('.connection-text').textContent = isOnline ? 'Online' : 'Offline - Changes will sync when connected';
+    
+    if (!isOnline) {
+        status.classList.add('show');
+    } else {
+        setTimeout(() => status.classList.remove('show'), 3000);
+    }
+}
+
+// Listen for connection changes
+window.addEventListener('online', () => {
+    updateConnectionStatus();
+    showToast('Back online! Syncing data...', 'success');
+    if (typeof syncPendingData === 'function') {
+        syncPendingData();
+    }
+});
+
+window.addEventListener('offline', () => {
+    updateConnectionStatus();
+    showToast('You are offline. Changes will be saved locally.', 'warning', 5000);
+});
+
+// ============================================
+// Loading Helpers
+// ============================================
+
+function showLoading(message = 'Loading...') {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.querySelector('.loading-text').textContent = message;
+        overlay.style.display = 'flex';
+        updateLoadingProgress(0);
+    }
+}
+
+function hideLoading() {
+    const overlay = document.getElementById('loading-overlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+    }
+}
+
+function updateLoadingProgress(percent) {
+    const bar = document.getElementById('loading-progress-bar');
+    if (bar) {
+        bar.style.width = `${percent}%`;
+    }
+}
+
 // ============================================
 // Authentication Handlers
 // ============================================
 
 async function handleLogin(e) {
     e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
     
-    await signIn(email, password);
+    btn.classList.add('btn-loading');
+    try {
+        await signIn(email, password);
+    } finally {
+        btn.classList.remove('btn-loading');
+    }
 }
 
 async function handleSignup(e) {
     e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
     const name = document.getElementById('signup-name').value;
     const email = document.getElementById('signup-email').value;
     const password = document.getElementById('signup-password').value;
     const confirm = document.getElementById('signup-confirm').value;
     
     if (password !== confirm) {
-        showMessage('Passwords do not match', 'error');
+        showToast('Passwords do not match', 'error');
         return;
     }
     
-    await signUp(email, password, name);
+    if (password.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+    }
+    
+    btn.classList.add('btn-loading');
+    try {
+        await signUp(email, password, name);
+    } finally {
+        btn.classList.remove('btn-loading');
+    }
 }
 
 async function handleForgotPassword(e) {
     e.preventDefault();
+    const btn = e.target.querySelector('button[type="submit"]');
     const email = document.getElementById('forgot-email').value;
-    await resetPassword(email);
+    
+    btn.classList.add('btn-loading');
+    try {
+        await resetPassword(email);
+    } finally {
+        btn.classList.remove('btn-loading');
+    }
 }
+
 
 // ============================================
 // Initialization
@@ -255,6 +412,11 @@ function handleAddHabit(e) {
     const frequency = document.getElementById('habit-frequency').value;
     const color = document.querySelector('input[name="habit-color"]:checked').value;
     
+    if (!name) {
+        showToast('Please enter a habit name', 'error');
+        return;
+    }
+    
     let days = [];
     if (frequency === 'daily') {
         days = [0, 1, 2, 3, 4, 5, 6];
@@ -266,6 +428,10 @@ function handleAddHabit(e) {
         document.querySelectorAll('#custom-days-group input:checked').forEach(input => {
             days.push(parseInt(input.value));
         });
+        if (days.length === 0) {
+            showToast('Please select at least one day', 'error');
+            return;
+        }
     }
 
     const habitData = {
@@ -278,13 +444,23 @@ function handleAddHabit(e) {
         icon: selectedIcon
     };
 
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.classList.add('btn-loading');
+
     // Save to database
     saveHabitToDb(habitData).then(savedHabit => {
+        btn.classList.remove('btn-loading');
         if (savedHabit) {
             habits.push(savedHabit);
             closeAddHabitModal();
             refreshAll();
+            showToast(`"${name}" has been added!`, 'success');
+        } else {
+            showToast('Failed to create habit', 'error');
         }
+    }).catch(() => {
+        btn.classList.remove('btn-loading');
+        showToast('Failed to create habit', 'error');
     });
 }
 
@@ -311,22 +487,46 @@ function handleEditHabit(e) {
     const habit = habits.find(h => h.id === id);
     if (!habit) return;
 
-    habit.name = document.getElementById('edit-habit-name').value.trim();
+    const name = document.getElementById('edit-habit-name').value.trim();
+    if (!name) {
+        showToast('Please enter a habit name', 'error');
+        return;
+    }
+
+    habit.name = name;
     habit.description = document.getElementById('edit-habit-description').value.trim();
     habit.category = document.getElementById('edit-habit-category').value;
 
+    const btn = e.target.querySelector('button[type="submit"]');
+    btn.classList.add('btn-loading');
+
     // Update in database
     updateHabitInDb(id, habit).then(success => {
+        btn.classList.remove('btn-loading');
         if (success) {
             closeEditHabitModal();
             refreshAll();
+            showToast('Habit updated successfully', 'success');
+        } else {
+            showToast('Failed to update habit', 'error');
         }
+    }).catch(() => {
+        btn.classList.remove('btn-loading');
+        showToast('Failed to update habit', 'error');
     });
 }
 
 async function deleteHabit() {
     const id = document.getElementById('edit-habit-id').value;
-    if (!confirm('Are you sure you want to delete this habit? This action cannot be undone.')) return;
+    const habit = habits.find(h => h.id === id);
+    
+    const confirmed = await showConfirmDialog(
+        'Delete Habit',
+        `Are you sure you want to delete "${habit?.name || 'this habit'}"? This action cannot be undone.`,
+        'danger'
+    );
+    
+    if (!confirmed) return;
     
     const success = await deleteHabitFromDb(id);
     if (success) {
@@ -341,6 +541,9 @@ async function deleteHabit() {
 
         closeEditHabitModal();
         refreshAll();
+        showToast('Habit deleted successfully', 'success');
+    } else {
+        showToast('Failed to delete habit', 'error');
     }
 }
 
@@ -352,16 +555,30 @@ async function toggleHabitCompletion(habitId, date = getTodayString()) {
     const newState = !completions[date][habitId];
     completions[date][habitId] = newState;
     
+    // Optimistically update UI first
+    refreshAll();
+    
     // Save to database
     const success = await toggleCompletionInDb(habitId, date, newState);
     
     if (success) {
         // Update streak
         await updateStreak(habitId);
+        
+        // Show encouraging message for completions
+        if (newState) {
+            const habit = habits.find(h => h.id === habitId);
+            const messages = ['Great job! 🎉', 'Keep it up! 💪', 'You\'re on fire! 🔥', 'Awesome! ⭐'];
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            showToast(`${habit?.name || 'Habit'} completed! ${randomMsg}`, 'success', 2000);
+        }
+        
         refreshAll();
     } else {
         // Revert on failure
         completions[date][habitId] = !newState;
+        refreshAll();
+        showToast('Failed to save. Will retry when online.', 'warning');
     }
 }
 

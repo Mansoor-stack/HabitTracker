@@ -7,7 +7,8 @@ async function loadUserData() {
     if (!currentUser) return;
     
     try {
-        showLoading(true);
+        showLoading('Loading your habits...');
+        updateLoadingProgress(10);
         
         // Load habits
         const { data: habitsData, error: habitsError } = await supabaseClient
@@ -17,6 +18,8 @@ async function loadUserData() {
             .order('created_at', { ascending: true });
 
         if (habitsError) throw habitsError;
+        
+        updateLoadingProgress(40);
         
         habits = habitsData.map(h => ({
             id: h.id,
@@ -32,6 +35,8 @@ async function loadUserData() {
             bestStreak: h.best_streak || 0
         }));
 
+        updateLoadingProgress(60);
+
         // Load completions
         const { data: completionsData, error: completionsError } = await supabaseClient
             .from('completions')
@@ -39,6 +44,8 @@ async function loadUserData() {
             .eq('user_id', currentUser.id);
 
         if (completionsError) throw completionsError;
+        
+        updateLoadingProgress(80);
         
         completions = {};
         completionsData.forEach(c => {
@@ -48,14 +55,16 @@ async function loadUserData() {
             completions[c.date][c.habit_id] = c.completed;
         });
 
+        updateLoadingProgress(100);
+
         // Refresh UI
         refreshAll();
         
     } catch (error) {
         console.error('Error loading data:', error);
-        showMessage('Error loading your data. Please refresh the page.', 'error');
+        showToast('Error loading your data. Please refresh the page.', 'error', 5000);
     } finally {
-        showLoading(false);
+        hideLoading();
     }
 }
 
