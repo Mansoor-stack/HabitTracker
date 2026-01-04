@@ -204,6 +204,25 @@ function toggleAuthForm(form) {
     }
 }
 
+// Toggle password visibility
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    
+    // Update button state and icon
+    if (button) {
+        button.classList.toggle('active', !isPassword);
+        const eyeIcon = button.querySelector('.eye-icon');
+        if (eyeIcon) {
+            eyeIcon.textContent = isPassword ? '👁‍🗨' : '👁';
+        }
+        button.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+    }
+}
+
 // ============================================
 // Visibility & Session Recovery
 // ============================================

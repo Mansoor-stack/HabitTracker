@@ -1254,6 +1254,60 @@ form {
     cursor: pointer;
 }
 
+/* Password Input with Toggle */
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 50px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    transition: var(--transition);
+    border-radius: var(--radius-sm);
+}
+
+.password-toggle:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+}
+
+.password-toggle:focus {
+    outline: none;
+    background: var(--bg-hover);
+}
+
+.password-toggle .eye-icon {
+    font-size: 18px;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.password-toggle:hover .eye-icon {
+    opacity: 1;
+}
+
+.password-toggle.active .eye-icon {
+    opacity: 1;
+}
+
 /* Color Picker */
 .color-picker {
     display: flex;

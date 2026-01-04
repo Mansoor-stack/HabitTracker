@@ -1247,9 +1247,9 @@ function updateAnalyticsProgressBar(completed, scheduled, rate) {
         const habitLabel = getHabitLabel();
         
         let title = periodLabel + ' Progress';
-        if (habitLabel !== 'All Habits') {
+        if (habitLabel) {
             title = habitLabel + ' - ' + periodLabel;
-        } else if (categoryLabel !== 'All Categories') {
+        } else if (categoryLabel) {
             title = categoryLabel + ' - ' + periodLabel;
         }
         
@@ -1265,27 +1265,31 @@ function getPeriodLabel() {
         year: 'Yearly',
         all: 'All Time'
     };
-    return labels[analyticsFilters.period] || 'Monthly';
+    return labels[analyticsFilters?.period] || 'Monthly';
 }
 
 function getCategoryLabel() {
+    const category = analyticsFilters?.category;
+    if (!category || category === 'all') {
+        return null; // Return null for "all" to indicate no filter
+    }
     const labels = {
-        all: 'All Categories',
         health: 'Health & Fitness',
         productivity: 'Productivity',
         mindfulness: 'Mindfulness',
         learning: 'Learning',
         other: 'Other'
     };
-    return labels[analyticsFilters.category] || 'All Categories';
+    return labels[category] || null;
 }
 
 function getHabitLabel() {
-    if (analyticsFilters.habitId === 'all') {
-        return 'All Habits';
+    const habitId = analyticsFilters?.habitId;
+    if (!habitId || habitId === 'all') {
+        return null; // Return null for "all" to indicate no filter
     }
-    const habit = habits.find(h => h.id === analyticsFilters.habitId);
-    return habit ? habit.name : 'All Habits';
+    const habit = habits.find(h => h.id === habitId);
+    return habit?.name || null;
 }
 
 function updateChartTitles() {
@@ -1293,11 +1297,11 @@ function updateChartTitles() {
     const categoryLabel = getCategoryLabel();
     const habitLabel = getHabitLabel();
     
-    // Build suffix based on filters
+    // Build suffix based on filters - only add if there's an actual filter
     let filterSuffix = '';
-    if (habitLabel !== 'All Habits') {
+    if (habitLabel) {
         filterSuffix = ` • ${habitLabel}`;
-    } else if (categoryLabel !== 'All Categories') {
+    } else if (categoryLabel) {
         filterSuffix = ` • ${categoryLabel}`;
     }
     
@@ -1316,9 +1320,9 @@ function updateChartTitles() {
     // Streaks title
     const streaksTitle = document.getElementById('streaks-chart-title');
     if (streaksTitle) {
-        if (habitLabel !== 'All Habits') {
+        if (habitLabel) {
             streaksTitle.textContent = `${habitLabel} Streak`;
-        } else if (categoryLabel !== 'All Categories') {
+        } else if (categoryLabel) {
             streaksTitle.textContent = `${categoryLabel} Streaks`;
         } else {
             streaksTitle.textContent = 'Habit Streaks';
