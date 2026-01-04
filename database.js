@@ -209,15 +209,182 @@ async function updateStreakInDb(habitId, streak, bestStreak) {
     }
 }
 
-// Sync local data to database (for offline support)
-async function syncToDatabase() {
+// ============================================
+// Session Management & Auto-Save
+// ============================================
+
+// Queue for pending operations (for offline/retry support)
+let pendingOperations = [];
+let isSyncing = false;
+
+// Add operation to pending queue
+function queueOperation(operation) {
+    pendingOperations.push({
+        ...operation,
+        timestamp: Date.now()
+    });
+    savePendingToLocalStorage();
+}
+
+// Save pending operations to localStorage for persistence
+function savePendingToLocalStorage() {
+    try {
+        localStorage.setItem('habitflow_pending', JSON.stringify(pendingOperations));
+    } catch (e) {
+        console.error('Error saving to localStorage:', e);
+    }
+}
+
+// Load pending operations from localStorage
+function loadPendingFromLocalStorage() {
+    try {
+        const saved = localStorage.getItem('habitflow_pending');
+        if (saved) {
+            pendingOperations = JSON.parse(saved);
+        }
+    } catch (e) {
+        console.error('Error loading from localStorage:', e);
+        pendingOperations = [];
+    }
+}
+
+// Sync all pending operations to database
+async function syncPendingData() {
+    if (!currentUser || isSyncing || pendingOperations.length === 0) return;
+    
+    isSyncing = true;
+    
+    try {
+        const operations = [...pendingOperations];
+        
+        for (const op of operations) {
+            try {
+                if (op.type === 'completion') {
+                    await toggleCompletionInDb(op.habitId, op.date, op.completed);
+                } else if (op.type === 'streak') {
+                    await updateStreakInDb(op.habitId, op.streak, op.bestStreak);
+                }
+                
+                // Remove successful operation from queue
+                pendingOperations = pendingOperations.filter(p => p.timestamp !== op.timestamp);
+            } catch (error) {
+                console.error('Error syncing operation:', error);
+                // Keep failed operations in queue for retry
+            }
+        }
+        
+        savePendingToLocalStorage();
+        console.log('Pending data synced successfully');
+        
+    } catch (error) {
+        console.error('Sync error:', error);
+    } finally {
+        isSyncing = false;
+    }
+}
+
+// Save session state to localStorage for recovery
+function saveSessionState() {
     if (!currentUser) return;
     
     try {
-        // This would sync any locally cached changes
-        // Useful if you implement offline support later
-        console.log('Data synced to database');
-    } catch (error) {
-        console.error('Sync error:', error);
+        const sessionState = {
+            lastActive: Date.now(),
+            currentView: typeof currentView !== 'undefined' ? currentView : 'dashboard',
+            habitsCache: habits,
+            completionsCache: completions
+        };
+        localStorage.setItem('habitflow_session', JSON.stringify(sessionState));
+    } catch (e) {
+        console.error('Error saving session state:', e);
     }
 }
+
+// Restore session state from localStorage
+function restoreSessionState() {
+    try {
+        const saved = localStorage.getItem('habitflow_session');
+        if (saved) {
+            const state = JSON.parse(saved);
+            // Only restore if session is less than 24 hours old
+            if (Date.now() - state.lastActive < 24 * 60 * 60 * 1000) {
+                return state;
+            }
+        }
+    } catch (e) {
+        console.error('Error restoring session state:', e);
+    }
+    return null;
+}
+
+// Clear session state
+function clearSessionState() {
+    try {
+        localStorage.removeItem('habitflow_session');
+        localStorage.removeItem('habitflow_pending');
+    } catch (e) {
+        console.error('Error clearing session state:', e);
+    }
+}
+
+// ============================================
+// Browser Event Handlers for Data Persistence
+// ============================================
+
+// Handle page visibility change (tab switch, minimize)
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        // Page is being hidden - save state
+        saveSessionState();
+        syncPendingData();
+    } else if (document.visibilityState === 'visible') {
+        // Page is visible again - refresh data if needed
+        if (currentUser) {
+            // Check if we need to refresh (if more than 5 minutes since last active)
+            const session = restoreSessionState();
+            if (session && Date.now() - session.lastActive > 5 * 60 * 1000) {
+                loadUserData(); // Refresh data from server
+            }
+        }
+    }
+});
+
+// Handle before page unload (browser close, refresh, navigate away)
+window.addEventListener('beforeunload', (event) => {
+    if (currentUser) {
+        saveSessionState();
+        
+        // Sync pending operations synchronously if possible
+        if (pendingOperations.length > 0) {
+            // Use sendBeacon for reliable data sending on page close
+            const data = JSON.stringify({
+                userId: currentUser.id,
+                pending: pendingOperations
+            });
+            
+            // Note: For critical data, sendBeacon is more reliable than fetch on page close
+            // However, it requires a server endpoint. For now, we rely on localStorage
+            savePendingToLocalStorage();
+        }
+    }
+});
+
+// Handle online/offline status
+window.addEventListener('online', () => {
+    console.log('Connection restored - syncing pending data');
+    syncPendingData();
+});
+
+window.addEventListener('offline', () => {
+    console.log('Connection lost - data will be saved locally');
+});
+
+// Periodic sync (every 30 seconds if there are pending operations)
+setInterval(() => {
+    if (currentUser && pendingOperations.length > 0) {
+        syncPendingData();
+    }
+}, 30000);
+
+// Initialize pending operations from localStorage on load
+loadPendingFromLocalStorage();

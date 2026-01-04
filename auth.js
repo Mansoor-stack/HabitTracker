@@ -12,6 +12,7 @@ async function checkAuth() {
         currentUser = session.user;
         showApp();
         await loadUserData();
+        initializeApp(); // Initialize the app after loading data
     } else {
         showAuthScreen();
     }
@@ -23,9 +24,13 @@ supabaseClient.auth.onAuthStateChange(async (event, session) => {
         currentUser = session.user;
         showApp();
         await loadUserData();
+        initializeApp(); // Initialize the app after loading data
     } else if (event === 'SIGNED_OUT') {
         currentUser = null;
         showAuthScreen();
+    } else if (event === 'TOKEN_REFRESHED') {
+        // Session token was refreshed, user stays logged in
+        console.log('Session refreshed');
     }
 });
 
@@ -84,6 +89,11 @@ async function signIn(email, password) {
 // Sign out
 async function signOut() {
     try {
+        showLoading(true);
+        
+        // Sync any pending data before signing out
+        await syncPendingData();
+        
         const { error } = await supabaseClient.auth.signOut();
         if (error) throw error;
         
@@ -92,8 +102,12 @@ async function signOut() {
         completions = {};
         currentUser = null;
         
+        showMessage('Signed out successfully', 'success');
+        
     } catch (error) {
         showMessage(error.message, 'error');
+    } finally {
+        showLoading(false);
     }
 }
 

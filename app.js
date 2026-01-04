@@ -75,10 +75,12 @@ function toggleMobileMenu() {
     const overlay = document.getElementById('sidebar-overlay');
     const menuToggle = document.getElementById('menu-toggle');
     
-    sidebar.classList.toggle('open');
-    overlay.classList.toggle('open');
-    menuToggle.classList.toggle('open');
-    document.body.classList.toggle('menu-open');
+    if (sidebar && overlay && menuToggle) {
+        sidebar.classList.toggle('open');
+        overlay.classList.toggle('open');
+        menuToggle.classList.toggle('open');
+        document.body.classList.toggle('menu-open');
+    }
 }
 
 function closeMobileMenu() {
@@ -86,9 +88,9 @@ function closeMobileMenu() {
     const overlay = document.getElementById('sidebar-overlay');
     const menuToggle = document.getElementById('menu-toggle');
     
-    sidebar.classList.remove('open');
-    overlay.classList.remove('open');
-    menuToggle.classList.remove('open');
+    if (sidebar) sidebar.classList.remove('open');
+    if (overlay) overlay.classList.remove('open');
+    if (menuToggle) menuToggle.classList.remove('open');
     document.body.classList.remove('menu-open');
 }
 
@@ -103,19 +105,28 @@ function updateCurrentDate() {
 // ============================================
 
 function setupEventListeners() {
-    // Navigation
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
+    // Navigation - add event listeners to all nav items
+    const navItems = document.querySelectorAll('.nav-item');
+    navItems.forEach(item => {
+        // Remove any existing listeners by cloning
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+        
+        newItem.addEventListener('click', (e) => {
             e.preventDefault();
-            const view = item.dataset.view;
-            switchView(view);
-            closeMobileMenu(); // Close menu on mobile after navigation
+            e.stopPropagation();
+            const view = newItem.dataset.view;
+            if (view) {
+                switchView(view);
+                closeMobileMenu();
+            }
         });
     });
 
     // Filter tabs
     document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.addEventListener('click', () => {
+        tab.addEventListener('click', (e) => {
+            e.preventDefault();
             document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
             tab.classList.add('active');
             currentFilter = tab.dataset.filter;
@@ -124,16 +135,27 @@ function setupEventListeners() {
     });
 
     // Add habit form
-    document.getElementById('add-habit-form').addEventListener('submit', handleAddHabit);
+    const addHabitForm = document.getElementById('add-habit-form');
+    if (addHabitForm) {
+        addHabitForm.addEventListener('submit', handleAddHabit);
+    }
     
     // Edit habit form
-    document.getElementById('edit-habit-form').addEventListener('submit', handleEditHabit);
+    const editHabitForm = document.getElementById('edit-habit-form');
+    if (editHabitForm) {
+        editHabitForm.addEventListener('submit', handleEditHabit);
+    }
 
     // Frequency selector
-    document.getElementById('habit-frequency').addEventListener('change', (e) => {
-        const customDaysGroup = document.getElementById('custom-days-group');
-        customDaysGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
-    });
+    const frequencySelect = document.getElementById('habit-frequency');
+    if (frequencySelect) {
+        frequencySelect.addEventListener('change', (e) => {
+            const customDaysGroup = document.getElementById('custom-days-group');
+            if (customDaysGroup) {
+                customDaysGroup.style.display = e.target.value === 'custom' ? 'block' : 'none';
+            }
+        });
+    }
 
     // Icon picker
     document.querySelectorAll('.icon-option').forEach(btn => {
@@ -145,23 +167,30 @@ function setupEventListeners() {
     });
 
     // Calendar navigation
-    document.getElementById('prev-month').addEventListener('click', () => {
-        currentMonth--;
-        if (currentMonth < 0) {
-            currentMonth = 11;
-            currentYear--;
-        }
-        renderCalendar();
-    });
+    const prevMonthBtn = document.getElementById('prev-month');
+    const nextMonthBtn = document.getElementById('next-month');
+    
+    if (prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', () => {
+            currentMonth--;
+            if (currentMonth < 0) {
+                currentMonth = 11;
+                currentYear--;
+            }
+            renderCalendar();
+        });
+    }
 
-    document.getElementById('next-month').addEventListener('click', () => {
-        currentMonth++;
-        if (currentMonth > 11) {
-            currentMonth = 0;
-            currentYear++;
-        }
-        renderCalendar();
-    });
+    if (nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', () => {
+            currentMonth++;
+            if (currentMonth > 11) {
+                currentMonth = 0;
+                currentYear++;
+            }
+            renderCalendar();
+        });
+    }
 }
 
 // ============================================
@@ -169,6 +198,8 @@ function setupEventListeners() {
 // ============================================
 
 function switchView(view) {
+    if (!view) return;
+    
     currentView = view;
     
     // Update navigation
@@ -178,7 +209,10 @@ function switchView(view) {
 
     // Update views
     document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-    document.getElementById(`${view}-view`).classList.add('active');
+    const viewElement = document.getElementById(`${view}-view`);
+    if (viewElement) {
+        viewElement.classList.add('active');
+    }
 
     // Update title
     const titles = {
