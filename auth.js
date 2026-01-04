@@ -125,8 +125,12 @@ async function signOut() {
 // Reset password
 async function resetPassword(email) {
     try {
+        // Get the base URL - handle both local dev and GitHub Pages
+        const baseUrl = window.location.origin + window.location.pathname.replace(/\/[^\/]*$/, '');
+        const redirectUrl = baseUrl + '/reset-password.html';
+        
         const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
-            redirectTo: window.location.origin + '/reset-password.html'
+            redirectTo: redirectUrl
         });
 
         if (error) throw error;
