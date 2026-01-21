@@ -11,7 +11,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 
-# Environment variables (if you use .env files)
+# Environment variables (if you use .env file
+s)
 .env
 .env.local
 .env.production

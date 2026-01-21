@@ -1,10 +1,10 @@
 # 🎯 HabitFlow - Habit Tracker
 
-A modern, production-ready habit tracking web application with real-time sync, beautiful visualizations, and multi-user support.
+A modern, production-ready habit tracking application with **PWA Web App** and **Native Mobile Apps** (iOS & Android). Features real-time sync, beautiful visualizations, and multi-device support.
 
 **Live Demo**: [https://mansoor-stack.github.io/HabitTracker/](https://mansoor-stack.github.io/HabitTracker/)
 
-![HabitFlow](https://img.shields.io/badge/Version-2.0-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E)
+![HabitFlow](https://img.shields.io/badge/Version-2.0-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E) ![React Native](https://img.shields.io/badge/Mobile-React%20Native-61DAFB) ![Expo](https://img.shields.io/badge/Expo-SDK%2054-000020)
 
 ---
 
@@ -50,16 +50,101 @@ A modern, production-ready habit tracking web application with real-time sync, b
 
 ---
 
+## 📱 Mobile App (iOS & Android)
+
+HabitFlow includes a native mobile app built with **React Native** and **Expo**, sharing the same Supabase backend as the PWA.
+
+### Mobile Features
+- 📱 **Native Experience** - True native app for iOS and Android
+- 🔄 **Real-time Sync** - Syncs with PWA in real-time via Supabase
+- 🎨 **7 Beautiful Themes** - Including Midnight, Ocean, Forest, Sunset, Rose, Lavender, and Light
+- 🔔 **Push Notifications** - Daily habit reminders
+- 📊 **Full Analytics** - Same powerful analytics as the web app
+- 🌐 **Cross-Device** - Theme and preferences sync across all devices
+
+### Mobile Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Framework** | React Native with Expo SDK 54 |
+| **Navigation** | Expo Router (file-based) |
+| **State** | Zustand |
+| **Styling** | NativeWind (Tailwind for RN) |
+| **Backend** | Supabase (shared with PWA) |
+| **Build** | EAS Build (Expo Application Services) |
+
+### Mobile Project Structure
+
+```
+HabitFlowMobile/
+├── app/                    # Expo Router screens
+│   ├── (auth)/            # Auth screens (login, register)
+│   ├── (tabs)/            # Main tab navigator
+│   └── _layout.tsx        # Root layout
+├── src/
+│   ├── components/        # Reusable components
+│   ├── stores/            # Zustand state stores
+│   ├── lib/               # Supabase & utilities
+│   ├── types/             # TypeScript definitions
+│   └── constants/         # Themes & constants
+├── assets/                # Images, fonts, icons
+├── app.json               # Expo config
+└── eas.json               # EAS Build config
+```
+
+### Running the Mobile App
+
+```bash
+# Navigate to mobile directory
+cd HabitFlowMobile
+
+# Install dependencies
+npm install
+
+# Start development server
+npx expo start
+
+# Run on Android
+npx expo run:android
+
+# Run on iOS (Mac required)
+npx expo run:ios
+```
+
+### Building for Production
+
+```bash
+# Install EAS CLI
+npm install -g eas-cli
+
+# Login to Expo
+eas login
+
+# Build Android APK
+eas build --platform android --profile preview
+
+# Build iOS (requires Apple Developer Account)
+eas build --platform ios --profile preview
+```
+
+### Download APK
+
+📥 **Android APK**: [Download from EAS](https://expo.dev/accounts/mansoorstack/projects/habitflow/builds/3b9345d5-66b3-4088-93e5-88461540eb96)
+
+---
+
 ## 🏗️ Architecture
 
 ### Tech Stack
 
 | Layer | Technology |
 |-------|------------|
-| **Frontend** | Vanilla JavaScript (ES6+), HTML5, CSS3 |
+| **Frontend (Web)** | Vanilla JavaScript (ES6+), HTML5, CSS3 |
+| **Frontend (Mobile)** | React Native, Expo SDK 54, NativeWind |
 | **Charts** | Chart.js |
 | **Backend** | Supabase (PostgreSQL + Auth + Realtime) |
-| **Hosting** | GitHub Pages |
+| **Hosting (Web)** | GitHub Pages |
+| **Mobile Builds** | EAS (Expo Application Services) |
 
 ### File Structure
 
@@ -396,6 +481,8 @@ In `index.html`, add to the icon picker grid:
 - [x] iOS safe area handling ✅
 - [x] Password visibility toggle ✅
 - [x] Visual progress bar in analytics ✅
+- [x] Native mobile app (iOS & Android) ✅
+- [x] Cross-device theme sync ✅
 - [ ] Social features (share progress, challenges)
 - [ ] Data export (CSV, JSON)
 - [ ] Habit templates library
